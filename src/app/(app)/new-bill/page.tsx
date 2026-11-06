@@ -33,8 +33,10 @@ import {
   calcRoundOff,
 } from '@/lib/utils';
 import { UNIT_OPTIONS, GST_RATES } from '@/lib/types';
-import type { Invoice, LineItem, CompanyProfile, InvoiceTemplate } from '@/lib/types';
+import type { Invoice, LineItem, CompanyProfile, InvoiceTemplate, InvoiceCreator } from '@/lib/types';
 import InvoicePreview from '@/components/InvoicePreview';
+import { getCurrentUser } from '@/lib/auth';
+import { recordBillActivity } from '@/lib/tracking';
 
 function InvoiceBuilderContent() {
   const router = useRouter();
@@ -369,8 +371,53 @@ function InvoiceBuilderContent() {
       alert('Please enter Client Name before saving.');
       return;
     }
-    saveInvoice(currentInvoice);
-    showToast('Invoice saved successfully');
+
+    const user = getCurrentUser();
+    const existing = editId ? getInvoice(editId) : null;
+    const creatorInfo: InvoiceCreator = user ? {
+      username: user.username,
+      name: user.displayName || user.fullName,
+      role: user.roleTitle || user.role,
+      timestamp: new Date().toISOString(),
+    } : {
+      username: 'Harsh16',
+      name: 'Harsh (Admin)',
+      role: 'Admin / Managing Partner',
+      timestamp: new Date().toISOString(),
+    };
+
+    const invoiceToSave: Invoice = {
+      ...currentInvoice,
+      createdBy: existing?.createdBy || creatorInfo,
+      updatedBy: creatorInfo,
+    };
+
+    saveInvoice(invoiceToSave);
+
+    // Record tracking event
+    const activeUser = user || {
+      id: 'usr_harsh16',
+      username: 'Harsh16',
+      email: 'harsh16@shiventerprises.com',
+      fullName: 'Harsh (Admin)',
+      displayName: 'Harsh',
+      role: 'admin' as const,
+      roleTitle: 'Admin / Managing Partner',
+      companyName: 'Shiv Enterprises Civil Contractors',
+      avatarInitials: 'HP',
+      loginTime: new Date().toISOString(),
+    };
+
+    recordBillActivity({
+      billId: invoiceToSave.id,
+      invoiceNumber: invoiceToSave.invoiceNumber,
+      clientName: invoiceToSave.clientName,
+      grandTotal: invoiceToSave.grandTotal,
+      action: editId ? 'updated' : 'created',
+      user: activeUser,
+    });
+
+    showToast(editId ? 'Invoice updated successfully' : 'Invoice saved & tracked successfully');
     setTimeout(() => {
       router.push('/bills');
     }, 800);

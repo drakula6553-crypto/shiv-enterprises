@@ -5,35 +5,37 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Lock,
-  Mail,
+  User,
   Eye,
   EyeOff,
   ShieldCheck,
   ArrowRight,
-  HardHat,
   CheckCircle2,
   Building2,
   Sparkles,
+  Crown,
+  HardHat,
 } from 'lucide-react';
-import { signIn, getCurrentUser } from '@/lib/auth';
-import ShivLogo from '@/components/ShivLogo';
+import { signIn, getCurrentUser, PARTNER_ACCOUNTS } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState('admin@shiventerprises.com');
-  const [password, setPassword] = useState('Contractor#2026');
+  const [username, setUsername] = useState('Harsh16');
+  const [password, setPassword] = useState('Harsh@123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<string>('Harsh16');
 
   useEffect(() => {
-    // If already logged in, show hint
+    // If already logged in, prefill that username
     const user = getCurrentUser();
-    if (user && user.email) {
-      setEmail(user.email);
+    if (user && user.username) {
+      setUsername(user.username);
+      setSelectedPartner(user.username);
     }
   }, []);
 
@@ -43,14 +45,14 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await signIn(email, password);
-      if (res.success) {
-        setSuccessMessage(`Welcome back, ${res.user?.fullName || 'Partner'}! Redirecting...`);
+      const res = await signIn(username, password);
+      if (res.success && res.user) {
+        setSuccessMessage(`Welcome back, ${res.user.fullName}! Redirecting to dashboard...`);
         setTimeout(() => {
           router.push('/');
         }, 600);
       } else {
-        setErrorMessage(res.error || 'Invalid credentials. Please verify your details.');
+        setErrorMessage(res.error || 'Invalid username or password.');
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Login failed. Please try again.');
@@ -59,10 +61,14 @@ export default function LoginPage() {
     }
   };
 
-  const handleFillDemo = () => {
-    setEmail('admin@shiventerprises.com');
-    setPassword('Contractor#2026');
-    setErrorMessage(null);
+  const handleSelectAccount = (userKey: 'harsh16' | 'girish1' | 'kishor2') => {
+    const acc = PARTNER_ACCOUNTS[userKey];
+    if (acc) {
+      setUsername(acc.username);
+      setPassword(acc.password);
+      setSelectedPartner(acc.username);
+      setErrorMessage(null);
+    }
   };
 
   return (
@@ -95,19 +101,19 @@ export default function LoginPage() {
       {/* Main Container */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left Column: Architectural Branding / Value Props (Desktop) */}
+          {/* Left Column: Architectural Branding / Security Info (Desktop) */}
           <div className="lg:col-span-6 space-y-6 hidden lg:block pr-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] font-medium tracking-wide">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              <span>Civil Contractor Internal Operations</span>
+              <span>Partner & Admin Access Portal</span>
             </div>
 
             <div className="space-y-3">
               <h1 className="text-3xl font-bold tracking-tight text-white leading-tight">
-                Enterprise billing & site finances, crafted for contractors.
+                Partner billing control & live activity audit.
               </h1>
               <p className="text-sm text-neutral-400 leading-relaxed">
-                Sign in to manage GST tax invoices on physical A4 letterheads, track sub-contractor debit/credit ledgers, and audit site material purchases.
+                Dedicated access for Shiv Enterprises partners. Every login and invoice created is tracked with partner identity, date, and exact timestamps.
               </p>
             </div>
 
@@ -115,24 +121,24 @@ export default function LoginPage() {
             <div className="space-y-3 pt-2">
               <div className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/[0.05]">
                 <div className="w-7 h-7 rounded-md bg-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
-                  <Building2 size={15} />
+                  <Crown size={15} />
                 </div>
                 <div>
-                  <h2 className="text-xs font-semibold text-white">Harshmaan Spaces & Builder Presets</h2>
+                  <h2 className="text-xs font-semibold text-white">Admin Activity Tracking</h2>
                   <p className="text-[11px] text-neutral-400 mt-0.5">
-                    Generate authentic typewriter A4 letterhead bills with 1-click builder templates.
+                    Harsh has full administrative oversight over all partner sessions, created bills, and site vouchers.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/[0.05]">
                 <div className="w-7 h-7 rounded-md bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
-                  <CheckCircle2 size={15} />
+                  <HardHat size={15} />
                 </div>
                 <div>
-                  <h2 className="text-xs font-semibold text-white">Subcontractor Ledgers & GST Tracking</h2>
+                  <h2 className="text-xs font-semibold text-white">Partner Authentication</h2>
                   <p className="text-[11px] text-neutral-400 mt-0.5">
-                    Real-time payment balances, RTGS/NEFT receipts, and automatic round-off math.
+                    Individual credentials for Girish, Kishor, and Harsh with cloud database sync on Supabase.
                   </p>
                 </div>
               </div>
@@ -141,7 +147,7 @@ export default function LoginPage() {
             {/* Security Badge */}
             <div className="flex items-center gap-2 text-xs text-neutral-500 pt-2">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <span>End-to-end encrypted session • Offline storage supported</span>
+              <span>End-to-end encrypted session • Supabase Cloud Audit Logs</span>
             </div>
           </div>
 
@@ -149,21 +155,80 @@ export default function LoginPage() {
           <div className="lg:col-span-6 w-full max-w-md mx-auto">
             <div className="bg-[#121620] border border-white/[0.08] rounded-2xl p-6 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
               {/* Card Header */}
-              <div className="mb-6">
+              <div className="mb-5">
                 <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-semibold block mb-1">
-                  Secure Access
+                  Partner Portal
                 </span>
                 <h2 className="text-xl font-bold text-white tracking-tight">
-                  Sign in to portal
+                  Sign in with Partner ID
                 </h2>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Enter your contractor account credentials
+                  Enter your assigned username and password
                 </p>
+              </div>
+
+              {/* Quick Partner Selector Cards */}
+              <div className="mb-5">
+                <label className="block text-[11px] font-medium text-neutral-400 mb-2">
+                  Select Partner Account (1-Click Fill):
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAccount('harsh16')}
+                    className={`p-2.5 rounded-lg border text-left transition-all ${
+                      selectedPartner.toLowerCase() === 'harsh16'
+                        ? 'bg-amber-500/15 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                        : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-amber-400 mb-1">
+                      <Crown size={13} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider">Admin</span>
+                    </div>
+                    <div className="text-xs font-bold text-white">Harsh</div>
+                    <div className="text-[10px] text-neutral-400 font-mono">Harsh16</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAccount('girish1')}
+                    className={`p-2.5 rounded-lg border text-left transition-all ${
+                      selectedPartner.toLowerCase() === 'girish1'
+                        ? 'bg-amber-500/15 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                        : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-blue-400 mb-1">
+                      <HardHat size={13} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider">Partner</span>
+                    </div>
+                    <div className="text-xs font-bold text-white">Girish</div>
+                    <div className="text-[10px] text-neutral-400 font-mono">girish1</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAccount('kishor2')}
+                    className={`p-2.5 rounded-lg border text-left transition-all ${
+                      selectedPartner.toLowerCase() === 'kishor2'
+                        ? 'bg-amber-500/15 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                        : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-emerald-400 mb-1">
+                      <HardHat size={13} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider">Partner</span>
+                    </div>
+                    <div className="text-xs font-bold text-white">Kishor</div>
+                    <div className="text-[10px] text-neutral-400 font-mono">kishor2</div>
+                  </button>
+                </div>
               </div>
 
               {/* Error Alert */}
               {errorMessage && (
-                <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
+                <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs leading-relaxed">
                   {errorMessage}
                 </div>
               )}
@@ -171,7 +236,7 @@ export default function LoginPage() {
               {/* Success Alert */}
               {successMessage && (
                 <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
-                  <CheckCircle2 size={14} />
+                  <CheckCircle2 size={14} className="shrink-0" />
                   <span>{successMessage}</span>
                 </div>
               )}
@@ -180,19 +245,22 @@ export default function LoginPage() {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-neutral-300 mb-1.5">
-                    Email address
+                    Username / Partner ID
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
-                      <Mail size={15} />
+                      <User size={15} />
                     </div>
                     <input
-                      type="email"
+                      type="text"
                       required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="admin@shiventerprises.com"
-                      className="w-full pl-9 pr-3 h-10 rounded-lg bg-[#181D2A] border border-white/[0.1] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/60 transition-all"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setSelectedPartner(e.target.value);
+                      }}
+                      placeholder="Harsh16, girish1, or kishor2"
+                      className="w-full pl-9 pr-3 h-10 rounded-lg bg-[#181D2A] border border-white/[0.1] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/60 transition-all font-mono"
                     />
                   </div>
                 </div>
@@ -202,13 +270,6 @@ export default function LoginPage() {
                     <label className="block text-xs font-medium text-neutral-300">
                       Password
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => alert('For demo access, please use the "Quick Fill Demo Owner" button below.')}
-                      className="text-[11px] text-amber-400 hover:text-amber-300 transition-colors"
-                    >
-                      Forgot password?
-                    </button>
                   </div>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
@@ -241,7 +302,7 @@ export default function LoginPage() {
                       className="w-3.5 h-3.5 rounded bg-[#181D2A] border-white/20 text-amber-500 focus:ring-amber-500/40"
                     />
                     <span className="text-xs text-neutral-400">
-                      Remember this device
+                      Keep me signed in on this device
                     </span>
                   </label>
                 </div>
@@ -263,19 +324,11 @@ export default function LoginPage() {
                 </button>
               </form>
 
-              {/* Quick Demo Fill Helper */}
-              <div className="mt-5 pt-5 border-t border-white/[0.08] text-center">
-                <p className="text-[11px] text-neutral-400 mb-2.5">
-                  Testing as site owner or supervisor?
+              {/* Note */}
+              <div className="mt-4 pt-4 border-t border-white/[0.08] text-center">
+                <p className="text-[11px] text-neutral-400">
+                  Every sign-in & bill creation is logged for partner transparency.
                 </p>
-                <button
-                  type="button"
-                  onClick={handleFillDemo}
-                  className="w-full h-9 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-200 text-xs font-medium transition-all flex items-center justify-center gap-1.5"
-                >
-                  <Sparkles size={13} className="text-amber-400" />
-                  <span>Quick Fill Demo Owner Credentials</span>
-                </button>
               </div>
             </div>
 

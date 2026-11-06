@@ -1,108 +1,159 @@
-import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { recordLoginEvent } from './tracking';
 
 export interface AuthUser {
   id: string;
+  username: string;
   email: string;
   fullName: string;
-  role: string;
+  displayName: string;
+  role: 'admin' | 'partner';
+  roleTitle: string;
   companyName: string;
-  avatarUrl?: string;
+  avatarInitials: string;
   loginTime: string;
+}
+
+export interface PartnerAccount {
+  username: string;
+  displayName: string;
+  fullName: string;
+  role: 'admin' | 'partner';
+  roleTitle: string;
+  password: string;
+  avatarInitials: string;
 }
 
 const AUTH_STORAGE_KEY = 'shiv_contractor_session';
 
-export const DEMO_ADMIN: AuthUser = {
-  id: 'usr_admin_01',
-  email: 'admin@shiventerprises.com',
-  fullName: 'Harsh P.',
-  role: 'Partner / Managing Director',
-  companyName: 'Shiv Enterprises Civil Contractors',
-  loginTime: new Date().toISOString(),
+/**
+ * Pre-configured Partner and Admin accounts
+ */
+export const PARTNER_ACCOUNTS: Record<string, PartnerAccount> = {
+  girish1: {
+    username: 'girish1',
+    displayName: 'Girish',
+    fullName: 'Girish (Partner)',
+    role: 'partner',
+    roleTitle: 'Partner',
+    password: 'Girish@123',
+    avatarInitials: 'G',
+  },
+  kishor2: {
+    username: 'kishor2',
+    displayName: 'Kishor',
+    fullName: 'Kishor (Partner)',
+    role: 'partner',
+    roleTitle: 'Partner',
+    password: 'Kishor@15',
+    avatarInitials: 'K',
+  },
+  harsh16: {
+    username: 'Harsh16',
+    displayName: 'Harsh',
+    fullName: 'Harsh (Admin)',
+    role: 'admin',
+    roleTitle: 'Admin / Managing Partner',
+    password: 'Harsh@123',
+    avatarInitials: 'HP',
+  },
 };
 
 /**
- * Get the currently logged in user from localStorage
+ * Check if the given user has admin privileges
+ */
+export function isUserAdmin(user: AuthUser | null): boolean {
+  if (!user) return false;
+  return user.role === 'admin' || user.username.toLowerCase() === 'harsh16';
+}
+
+/**
+ * Get current logged in user from localStorage
  */
 export function getCurrentUser(): AuthUser | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!raw) return DEMO_ADMIN; // Default signed-in for seamless site ops if not explicitly logged out
-    if (raw === 'logged_out') return null;
+    if (!raw || raw === 'logged_out') {
+      return null;
+    }
     return JSON.parse(raw);
   } catch {
-    return DEMO_ADMIN;
+    return null;
   }
 }
 
 /**
- * Sign in with email and password
+ * Sign in using username or email and password
  */
-export async function signIn(email: string, password: string): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
-  const cleanEmail = email.trim().toLowerCase();
+export async function signIn(
+  identifier: string,
+  password: string
+): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
+  const cleanId = identifier.trim().toLowerCase();
+  const cleanPass = password.trim();
 
-  // If Supabase is connected, try real backend auth first
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
-      });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      if (data?.user) {
-        const user: AuthUser = {
-          id: data.user.id,
-          email: data.user.email || cleanEmail,
-          fullName: data.user.user_metadata?.full_name || 'Admin Partner',
-          role: 'Partner / Owner',
-          companyName: 'Shiv Enterprises',
-          loginTime: new Date().toISOString(),
-        };
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-        return { success: true, user };
-      }
-    } catch (err: any) {
-      console.warn('Supabase auth failed, falling back to local credentials:', err);
-    }
+  if (!cleanId || !cleanPass) {
+    return {
+      success: false,
+      error: 'Please enter both your username and password.',
+    };
   }
 
-  // Local / offline contractor authentication
-  if (!cleanEmail || !password) {
-    return { success: false, error: 'Please enter both email and password.' };
+  // Normalize username (strip @domain if email entered)
+  const usernameKey = cleanId.split('@')[0];
+
+  // Find matching account
+  const account = PARTNER_ACCOUNTS[usernameKey] || PARTNER_ACCOUNTS[cleanId];
+
+  if (!account) {
+    return {
+      success: false,
+      error: `Invalid username "${identifier}". Access is restricted to registered partners (Harsh16, girish1, kishor2).`,
+    };
   }
 
-  // Accept admin demo credentials or any reasonable contractor password (> 4 chars)
-  const isDemo = cleanEmail === 'admin@shiventerprises.com' || cleanEmail.includes('shiv');
+  // Check password
+  if (account.password !== cleanPass) {
+    return {
+      success: false,
+      error: 'Incorrect password. Please verify and try again.',
+    };
+  }
+
+  // Construct authenticated user session
   const user: AuthUser = {
-    id: 'usr_' + Math.random().toString(36).substring(2, 9),
-    email: cleanEmail,
-    fullName: isDemo ? 'Harsh P.' : cleanEmail.split('@')[0],
-    role: 'Partner / Managing Director',
+    id: `usr_${account.username.toLowerCase()}`,
+    username: account.username,
+    email: `${account.username.toLowerCase()}@shiventerprises.com`,
+    fullName: account.fullName,
+    displayName: account.displayName,
+    role: account.role,
+    roleTitle: account.roleTitle,
     companyName: 'Shiv Enterprises Civil Contractors',
+    avatarInitials: account.avatarInitials,
     loginTime: new Date().toISOString(),
   };
 
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+  }
+
+  // Record login event in Supabase and local tracking logs
+  try {
+    await recordLoginEvent(user);
+  } catch (err) {
+    console.warn('Could not record login event:', err);
+  }
+
   return { success: true, user };
 }
 
 /**
- * Sign out
+ * Sign out current user
  */
 export async function signOut(): Promise<void> {
-  if (isSupabaseConfigured && supabase) {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      console.error('Supabase signOut error:', e);
-    }
-  }
   if (typeof window !== 'undefined') {
     localStorage.setItem(AUTH_STORAGE_KEY, 'logged_out');
+    localStorage.removeItem(AUTH_STORAGE_KEY);
   }
 }

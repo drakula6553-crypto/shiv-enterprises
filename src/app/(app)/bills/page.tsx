@@ -19,6 +19,7 @@ import {
   CreditCard,
   Banknote,
   FileText,
+  User,
 } from 'lucide-react';
 import {
   getInvoices,
@@ -380,6 +381,17 @@ export default function BillsPage() {
                           {inv.projectName}
                         </p>
                       )}
+
+                      {/* Partner Creator & Timestamp Tracking */}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-800 font-medium">
+                          <User size={11} className="text-amber-600" />
+                          <span>Created by: {inv.createdBy?.name || 'Partner'}</span>
+                        </span>
+                        <span className="text-neutral-500 font-mono text-[10px]">
+                          • {inv.createdBy?.timestamp ? new Date(inv.createdBy.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : formatDateIN(inv.invoiceDate)}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="text-right flex-shrink-0">

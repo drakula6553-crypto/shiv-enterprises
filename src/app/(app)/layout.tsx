@@ -1,7 +1,8 @@
 import BottomNav from '@/components/BottomNav';
 import Sidebar from '@/components/Sidebar';
+import HeaderUserBadge from '@/components/HeaderUserBadge';
 import Link from 'next/link';
-import { User, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 
 export default function AppLayout({
   children,
@@ -38,13 +39,7 @@ export default function AppLayout({
             >
               <Settings size={18} />
             </Link>
-            <Link
-              href="/login"
-              className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 font-semibold text-xs"
-              title="Account / Sign in"
-            >
-              HP
-            </Link>
+            <HeaderUserBadge />
           </div>
         </div>
       </header>

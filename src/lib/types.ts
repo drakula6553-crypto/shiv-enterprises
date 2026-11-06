@@ -58,6 +58,13 @@ export interface InvoiceTemplate {
   isDefault?: boolean;
 }
 
+export interface InvoiceCreator {
+  username: string;
+  name: string;
+  role: string;
+  timestamp: string;
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber: string;
@@ -92,6 +99,9 @@ export interface Invoice {
   payments: Payment[];
   totalReceived: number;
   balanceDue: number;
+  // Tracking & creator
+  createdBy?: InvoiceCreator;
+  updatedBy?: InvoiceCreator;
   // Timestamps
   createdAt: string;
   updatedAt: string;

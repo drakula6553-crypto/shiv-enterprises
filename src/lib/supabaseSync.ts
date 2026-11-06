@@ -106,6 +106,10 @@ export async function pushAllToSupabase(): Promise<SyncResult> {
         payments: inv.payments,
         total_received: inv.totalReceived,
         balance_due: inv.balanceDue,
+        created_by_username: inv.createdBy?.username || null,
+        created_by_name: inv.createdBy?.name || null,
+        created_by_role: inv.createdBy?.role || null,
+        created_by_time: inv.createdBy?.timestamp || null,
       }));
       await supabase.from('invoices').upsert(formattedInvoices);
     }
@@ -233,6 +237,12 @@ export async function pullAllFromSupabase(): Promise<SyncResult> {
         payments: row.payments || [],
         totalReceived: Number(row.total_received),
         balanceDue: Number(row.balance_due),
+        createdBy: row.created_by_username ? {
+          username: row.created_by_username,
+          name: row.created_by_name || row.created_by_username,
+          role: row.created_by_role || 'Partner',
+          timestamp: row.created_by_time || row.created_at,
+        } : undefined,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       }));

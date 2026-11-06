@@ -13,8 +13,10 @@ import {
   LogOut,
   LogIn,
   User,
+  ShieldCheck,
+  Crown,
 } from 'lucide-react';
-import { getCurrentUser, signOut, AuthUser } from '@/lib/auth';
+import { getCurrentUser, signOut, isUserAdmin, AuthUser } from '@/lib/auth';
 
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
@@ -22,6 +24,7 @@ const navItems = [
   { href: '/bills', label: 'Bills & invoices', icon: FileText },
   { href: '/expenses', label: 'Purchases & expenses', icon: ShoppingBag },
   { href: '/contractors', label: 'Contractors', icon: Users },
+  { href: '/admin/tracking', label: 'Admin tracking', icon: ShieldCheck, adminPill: true },
 ];
 
 export default function Sidebar() {
@@ -61,7 +64,8 @@ export default function Sidebar() {
         <p className="px-3 pt-2 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-neutral-500 font-mono">
           Operations
         </p>
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {navItems.map((item) => {
+          const { href, label, icon: Icon } = item;
           const isActive =
             href === '/'
               ? pathname === '/'
@@ -72,7 +76,7 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={`
-                flex items-center gap-3 px-3 h-9 rounded-lg
+                flex items-center justify-between px-3 h-9 rounded-lg
                 nav-transition text-xs font-medium
                 ${isActive
                   ? 'bg-white/[0.08] text-white font-semibold border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
@@ -80,12 +84,19 @@ export default function Sidebar() {
                 }
               `}
             >
-              <Icon
-                size={16}
-                strokeWidth={1.5}
-                className={isActive ? 'text-amber-400' : 'text-neutral-500'}
-              />
-              <span>{label}</span>
+              <div className="flex items-center gap-3">
+                <Icon
+                  size={16}
+                  strokeWidth={1.5}
+                  className={isActive ? 'text-amber-400' : 'text-neutral-500'}
+                />
+                <span>{label}</span>
+              </div>
+              {item.adminPill && (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono uppercase font-bold tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  Live
+                </span>
+              )}
             </Link>
           );
         })}
@@ -112,15 +123,19 @@ export default function Sidebar() {
         <div className="pt-2 border-t border-white/[0.05] flex items-center justify-between px-2">
           {currentUser ? (
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 font-semibold text-[11px] shrink-0">
-                {currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'H'}
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 border ${
+                currentUser.role === 'admin'
+                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                  : 'bg-blue-500/20 border-blue-500/40 text-blue-300'
+              }`}>
+                {currentUser.avatarInitials || (currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'H')}
               </div>
               <div className="overflow-hidden">
-                <span className="text-xs font-medium text-white block truncate">
-                  {currentUser.fullName || 'Harsh P.'}
+                <span className="text-xs font-semibold text-white block truncate">
+                  {currentUser.displayName || currentUser.fullName}
                 </span>
                 <span className="text-[10px] text-neutral-400 block truncate">
-                  {currentUser.role ? 'Partner' : 'Partner'}
+                  {currentUser.roleTitle || (currentUser.role === 'admin' ? 'Admin' : 'Partner')}
                 </span>
               </div>
             </div>
@@ -137,7 +152,7 @@ export default function Sidebar() {
           {currentUser ? (
             <button
               onClick={handleSignOut}
-              title="Sign out"
+              title={`Sign out (${currentUser.username})`}
               className="p-1.5 text-neutral-400 hover:text-rose-400 hover:bg-white/[0.05] rounded-md transition-colors"
             >
               <LogOut size={14} />
