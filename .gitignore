@@ -32,3 +32,6 @@ next-env.d.ts
 # Agent local artifacts
 .agents/
 .gemini/
+
+.vercel
+.env*
