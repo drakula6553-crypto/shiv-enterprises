@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -12,32 +12,21 @@ import {
   ArrowRight,
   CheckCircle2,
   Building2,
-  Sparkles,
   Crown,
   HardHat,
 } from 'lucide-react';
-import { signIn, getCurrentUser, PARTNER_ACCOUNTS } from '@/lib/auth';
+import { signIn } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const [username, setUsername] = useState('Harsh16');
-  const [password, setPassword] = useState('Harsh@123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [selectedPartner, setSelectedPartner] = useState<string>('Harsh16');
-
-  useEffect(() => {
-    // If already logged in, prefill that username
-    const user = getCurrentUser();
-    if (user && user.username) {
-      setUsername(user.username);
-      setSelectedPartner(user.username);
-    }
-  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,21 +50,11 @@ export default function LoginPage() {
     }
   };
 
-  const handleSelectAccount = (userKey: 'harsh16' | 'girish1' | 'kishor2') => {
-    const acc = PARTNER_ACCOUNTS[userKey];
-    if (acc) {
-      setUsername(acc.username);
-      setPassword(acc.password);
-      setSelectedPartner(acc.username);
-      setErrorMessage(null);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#090D14] text-neutral-100 flex flex-col justify-between selection:bg-amber-500/30 selection:text-amber-200">
-      {/* Top Header */}
+      {/* Top Header without any bypass link */}
       <header className="px-6 py-5 flex items-center justify-between border-b border-white/[0.06] backdrop-blur-sm">
-        <Link href="/" className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white font-bold text-sm shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
             SE
           </div>
@@ -87,15 +66,12 @@ export default function LoginPage() {
               Civil Contractors • Borivali (W)
             </span>
           </div>
-        </Link>
+        </div>
 
-        <Link
-          href="/"
-          className="text-xs text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5"
-        >
-          <span>Return to Dashboard</span>
-          <ArrowRight size={13} />
-        </Link>
+        <div className="flex items-center gap-2 text-xs text-neutral-400 font-mono">
+          <ShieldCheck size={14} className="text-amber-400" />
+          <span className="hidden sm:inline">Protected Partner Portal</span>
+        </div>
       </header>
 
       {/* Main Container */}
@@ -110,10 +86,10 @@ export default function LoginPage() {
 
             <div className="space-y-3">
               <h1 className="text-3xl font-bold tracking-tight text-white leading-tight">
-                Partner billing control & live activity audit.
+                Enterprise billing control & site operations.
               </h1>
               <p className="text-sm text-neutral-400 leading-relaxed">
-                Dedicated access for Shiv Enterprises partners. Every login and invoice created is tracked with partner identity, date, and exact timestamps.
+                Dedicated access for authorized Shiv Enterprises partners. Every login and invoice created is tracked with partner identity, date, and exact timestamps.
               </p>
             </div>
 
@@ -126,7 +102,7 @@ export default function LoginPage() {
                 <div>
                   <h2 className="text-xs font-semibold text-white">Admin Activity Tracking</h2>
                   <p className="text-[11px] text-neutral-400 mt-0.5">
-                    Harsh has full administrative oversight over all partner sessions, created bills, and site vouchers.
+                    Harsh has full administrative oversight over all partner sessions, created bills, and site operations.
                   </p>
                 </div>
               </div>
@@ -138,7 +114,7 @@ export default function LoginPage() {
                 <div>
                   <h2 className="text-xs font-semibold text-white">Partner Authentication</h2>
                   <p className="text-[11px] text-neutral-400 mt-0.5">
-                    Individual credentials for Girish, Kishor, and Harsh with cloud database sync on Supabase.
+                    Individual credentials for partners with cloud database sync on Supabase.
                   </p>
                 </div>
               </div>
@@ -155,75 +131,16 @@ export default function LoginPage() {
           <div className="lg:col-span-6 w-full max-w-md mx-auto">
             <div className="bg-[#121620] border border-white/[0.08] rounded-2xl p-6 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
               {/* Card Header */}
-              <div className="mb-5">
+              <div className="mb-6">
                 <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-semibold block mb-1">
-                  Partner Portal
+                  Secure Access
                 </span>
                 <h2 className="text-xl font-bold text-white tracking-tight">
-                  Sign in with Partner ID
+                  Sign in to portal
                 </h2>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Enter your assigned username and password
+                  Enter your assigned partner username and password
                 </p>
-              </div>
-
-              {/* Quick Partner Selector Cards */}
-              <div className="mb-5">
-                <label className="block text-[11px] font-medium text-neutral-400 mb-2">
-                  Select Partner Account (1-Click Fill):
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectAccount('harsh16')}
-                    className={`p-2.5 rounded-lg border text-left transition-all ${
-                      selectedPartner.toLowerCase() === 'harsh16'
-                        ? 'bg-amber-500/15 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
-                        : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 text-amber-400 mb-1">
-                      <Crown size={13} />
-                      <span className="text-[10px] font-semibold uppercase tracking-wider">Admin</span>
-                    </div>
-                    <div className="text-xs font-bold text-white">Harsh</div>
-                    <div className="text-[10px] text-neutral-400 font-mono">Harsh16</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectAccount('girish1')}
-                    className={`p-2.5 rounded-lg border text-left transition-all ${
-                      selectedPartner.toLowerCase() === 'girish1'
-                        ? 'bg-amber-500/15 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
-                        : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 text-blue-400 mb-1">
-                      <HardHat size={13} />
-                      <span className="text-[10px] font-semibold uppercase tracking-wider">Partner</span>
-                    </div>
-                    <div className="text-xs font-bold text-white">Girish</div>
-                    <div className="text-[10px] text-neutral-400 font-mono">girish1</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectAccount('kishor2')}
-                    className={`p-2.5 rounded-lg border text-left transition-all ${
-                      selectedPartner.toLowerCase() === 'kishor2'
-                        ? 'bg-amber-500/15 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
-                        : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 text-emerald-400 mb-1">
-                      <HardHat size={13} />
-                      <span className="text-[10px] font-semibold uppercase tracking-wider">Partner</span>
-                    </div>
-                    <div className="text-xs font-bold text-white">Kishor</div>
-                    <div className="text-[10px] text-neutral-400 font-mono">kishor2</div>
-                  </button>
-                </div>
               </div>
 
               {/* Error Alert */}
@@ -254,12 +171,10 @@ export default function LoginPage() {
                     <input
                       type="text"
                       required
+                      autoComplete="username"
                       value={username}
-                      onChange={(e) => {
-                        setUsername(e.target.value);
-                        setSelectedPartner(e.target.value);
-                      }}
-                      placeholder="Harsh16, girish1, or kishor2"
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Enter username"
                       className="w-full pl-9 pr-3 h-10 rounded-lg bg-[#181D2A] border border-white/[0.1] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/60 transition-all font-mono"
                     />
                   </div>
@@ -278,15 +193,17 @@ export default function LoginPage() {
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
+                      autoComplete="current-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
+                      placeholder="Enter password"
                       className="w-full pl-9 pr-10 h-10 rounded-lg bg-[#181D2A] border border-white/[0.1] text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/60 transition-all font-mono"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-white"
+                      tabIndex={-1}
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -311,7 +228,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-10 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-xs tracking-wide shadow-[0_2px_12px_rgba(245,158,11,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+                  className="w-full h-10 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold text-xs tracking-wide shadow-[0_2px_12px_rgba(245,158,11,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-3"
                 >
                   {isLoading ? (
                     <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -325,9 +242,9 @@ export default function LoginPage() {
               </form>
 
               {/* Note */}
-              <div className="mt-4 pt-4 border-t border-white/[0.08] text-center">
+              <div className="mt-5 pt-4 border-t border-white/[0.08] text-center">
                 <p className="text-[11px] text-neutral-400">
-                  Every sign-in & bill creation is logged for partner transparency.
+                  Access is strictly restricted to authorized Shiv Enterprises partners.
                 </p>
               </div>
             </div>

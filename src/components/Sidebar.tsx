@@ -24,7 +24,6 @@ const navItems = [
   { href: '/bills', label: 'Bills & invoices', icon: FileText },
   { href: '/expenses', label: 'Purchases & expenses', icon: ShoppingBag },
   { href: '/contractors', label: 'Contractors', icon: Users },
-  { href: '/admin/tracking', label: 'Admin tracking', icon: ShieldCheck, adminPill: true },
 ];
 
 export default function Sidebar() {
@@ -64,8 +63,7 @@ export default function Sidebar() {
         <p className="px-3 pt-2 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-neutral-500 font-mono">
           Operations
         </p>
-        {navItems.map((item) => {
-          const { href, label, icon: Icon } = item;
+        {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === '/'
               ? pathname === '/'
@@ -76,7 +74,7 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={`
-                flex items-center justify-between px-3 h-9 rounded-lg
+                flex items-center gap-3 px-3 h-9 rounded-lg
                 nav-transition text-xs font-medium
                 ${isActive
                   ? 'bg-white/[0.08] text-white font-semibold border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
@@ -84,22 +82,48 @@ export default function Sidebar() {
                 }
               `}
             >
-              <div className="flex items-center gap-3">
-                <Icon
-                  size={16}
-                  strokeWidth={1.5}
-                  className={isActive ? 'text-amber-400' : 'text-neutral-500'}
-                />
-                <span>{label}</span>
-              </div>
-              {item.adminPill && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono uppercase font-bold tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  Live
-                </span>
-              )}
+              <Icon
+                size={16}
+                strokeWidth={1.5}
+                className={isActive ? 'text-amber-400' : 'text-neutral-500'}
+              />
+              <span>{label}</span>
             </Link>
           );
         })}
+
+        {/* Strictly Admin Only Section - Hidden from regular partners */}
+        {isUserAdmin(currentUser) && (
+          <div className="pt-3 border-t border-white/[0.05] mt-2">
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-400 font-mono flex items-center gap-1.5">
+              <Crown size={12} className="text-amber-400" />
+              <span>Admin Authority</span>
+            </p>
+            <Link
+              href="/admin/tracking"
+              className={`
+                flex items-center justify-between px-3 h-9 rounded-lg
+                nav-transition text-xs font-medium
+                ${pathname.startsWith('/admin/tracking')
+                  ? 'bg-amber-500/15 text-amber-300 font-semibold border border-amber-500/30 shadow-[inset_0_1px_0_rgba(245,158,11,0.15)]'
+                  : 'text-neutral-400 hover:bg-white/[0.04] hover:text-white'
+                }
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <ShieldCheck
+                  size={16}
+                  strokeWidth={1.5}
+                  className="text-amber-400"
+                />
+                <span>Audit & Tracking</span>
+              </div>
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono uppercase font-bold tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Admin
+              </span>
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* Settings & Auth Footer */}

@@ -59,7 +59,11 @@ export default function AdminTrackingPage() {
   useEffect(() => {
     const user = getCurrentUser();
     if (!user) {
-      router.push('/login');
+      router.replace('/login');
+      return;
+    }
+    if (!isUserAdmin(user)) {
+      router.replace('/');
       return;
     }
     setCurrentUser(user);
@@ -122,6 +126,26 @@ export default function AdminTrackingPage() {
   };
 
   const isAdmin = isUserAdmin(currentUser);
+
+  if (!currentUser || !isAdmin) {
+    return (
+      <div className="max-w-md mx-auto my-24 p-6 bg-white rounded-2xl border border-neutral-200 text-center space-y-4 shadow-sm">
+        <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-200">
+          <ShieldCheck size={24} />
+        </div>
+        <h2 className="text-base font-bold text-neutral-900">Admin Authority Required</h2>
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          The Activity Audit & Tracking portal is strictly restricted to Admin (Harsh16). Regular partners do not have access to this section.
+        </p>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center px-4 h-9 rounded-lg bg-[#0B0F17] hover:bg-neutral-800 text-white text-xs font-semibold transition-colors"
+        >
+          Return to Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
