@@ -290,6 +290,22 @@ export function deleteExpense(id: string): void {
   localStorage.setItem(KEYS.expenses, JSON.stringify(list));
 }
 
+export function updateExpenseReceipt(
+  expenseId: string,
+  receiptUrl: string | null,
+  receiptName?: string,
+  receiptType?: 'image' | 'pdf'
+): Expense | null {
+  const exp = getExpense(expenseId);
+  if (!exp) return null;
+  exp.receiptUrl = receiptUrl;
+  exp.receiptName = receiptName;
+  exp.receiptType = receiptType;
+  exp.updatedAt = new Date().toISOString();
+  saveExpense(exp);
+  return exp;
+}
+
 // ─── Seed & Reset ─────────────────────────────────────────────
 
 export function seedSampleData(): void {

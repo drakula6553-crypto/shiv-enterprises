@@ -162,7 +162,9 @@ export interface Expense {
   amount: number;        // Total amount (Rs.)
   paymentMode: 'cash' | 'upi' | 'bank_transfer' | 'cheque';
   status: 'paid' | 'pending';
-  receiptUrl?: string | null; // Receipt photo base64
+  receiptUrl?: string | null; // Receipt photo or PDF base64
+  receiptName?: string;       // File name
+  receiptType?: 'image' | 'pdf'; // Type of receipt file
   notes?: string;
   createdAt: string;
   updatedAt?: string;
