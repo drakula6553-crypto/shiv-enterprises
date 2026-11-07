@@ -584,6 +584,13 @@ function InvoiceBuilderContent() {
 
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${currentInvoice.invoiceNumber}_${currentInvoice.clientName.replace(/\s+/g, '_')}.pdf`);
+      recordBillActivity({
+        billId: currentInvoice.id,
+        invoiceNumber: currentInvoice.invoiceNumber,
+        clientName: currentInvoice.clientName,
+        grandTotal: currentInvoice.grandTotal,
+        action: 'downloaded_pdf',
+      });
       showToast('PDF downloaded successfully');
     } catch (err: any) {
       console.error('PDF generation error:', err);

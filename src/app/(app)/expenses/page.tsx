@@ -35,6 +35,7 @@ import {
 import { formatINR, formatDateIN, todayISO, generateId } from '@/lib/utils';
 import { EXPENSE_CATEGORIES, PAYMENT_MODES } from '@/lib/types';
 import type { Expense, ExpenseCategory, CompanyProfile } from '@/lib/types';
+import { recordExpenseActivity } from '@/lib/tracking';
 
 // Helper to compress camera/gallery images before storing
 function compressImage(file: File): Promise<{ dataUrl: string; name: string; type: 'image' }> {
@@ -279,6 +280,15 @@ export default function ExpensesPage() {
     };
 
     saveExpense(newExp);
+    recordExpenseActivity({
+      expenseId: newExp.id,
+      paidTo: newExp.paidTo,
+      category: newExp.category,
+      projectName: newExp.projectName,
+      amount: newExp.amount,
+      billNumber: newExp.billNumber,
+      action: editingExpense ? 'updated' : 'created',
+    });
     loadData();
     setShowModal(false);
     showToast(editingExpense ? 'Purchase voucher updated' : 'Purchase recorded successfully');
@@ -327,6 +337,16 @@ export default function ExpensesPage() {
       quickReceiptType
     );
 
+    recordExpenseActivity({
+      expenseId: quickUploadExpense.id,
+      paidTo: quickUploadExpense.paidTo,
+      category: quickUploadExpense.category,
+      projectName: quickUploadExpense.projectName,
+      amount: quickUploadExpense.amount,
+      billNumber: quickUploadExpense.billNumber,
+      action: 'receipt_uploaded',
+    });
+
     loadData();
     setQuickUploadExpense(null);
     showToast(`Bill attached to voucher for ${quickUploadExpense.paidTo}`);
@@ -334,7 +354,19 @@ export default function ExpensesPage() {
 
   const handleDeleteExpense = (id: string, desc: string) => {
     if (confirm(`Delete purchase entry "${desc}"?`)) {
+      const target = expenses.find((e) => e.id === id);
       deleteExpense(id);
+      if (target) {
+        recordExpenseActivity({
+          expenseId: id,
+          paidTo: target.paidTo,
+          category: target.category,
+          projectName: target.projectName,
+          amount: target.amount,
+          billNumber: target.billNumber,
+          action: 'deleted',
+        });
+      }
       loadData();
       showToast('Entry removed');
     }

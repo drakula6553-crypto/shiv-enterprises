@@ -30,6 +30,7 @@ import {
 import { formatINR, formatDateIN, todayISO, generateId } from '@/lib/utils';
 import { TRADE_OPTIONS, PAYMENT_MODES } from '@/lib/types';
 import type { Contractor, ContractorBill, ContractorPayment, CompanyProfile } from '@/lib/types';
+import { recordContractorActivity } from '@/lib/tracking';
 
 interface LedgerEntry {
   id: string;
@@ -165,6 +166,13 @@ export default function ContractorsPage() {
     };
 
     saveContractor(contractor);
+    recordContractorActivity({
+      contractorId: contractor.id,
+      contractorName: contractor.name,
+      category: contractor.trade,
+      action: editingContractor ? 'contractor_updated' : 'contractor_added',
+      description: contractor.trade + (contractor.phone ? ` • Tel: ${contractor.phone}` : ''),
+    });
     setShowAddContractorModal(false);
     loadData();
     showToast(editingContractor ? 'Contractor profile updated' : 'Contractor added successfully');
@@ -173,7 +181,15 @@ export default function ContractorsPage() {
   // Delete Contractor
   const handleDeleteContractor = (id: string, name: string) => {
     if (confirm(`Delete contractor "${name}" and all ledger history?`)) {
+      const target = contractors.find((c) => c.id === id);
       deleteContractor(id);
+      recordContractorActivity({
+        contractorId: id,
+        contractorName: name,
+        category: target?.trade || 'General',
+        action: 'contractor_deleted',
+        amount: target?.balance || 0,
+      });
       if (activeLedgerContractor?.id === id) {
         setActiveLedgerContractor(null);
       }
@@ -210,6 +226,14 @@ export default function ContractorsPage() {
     };
 
     addContractorBill(billModalContractor.id, newBill);
+    recordContractorActivity({
+      contractorId: billModalContractor.id,
+      contractorName: billModalContractor.name,
+      category: billModalContractor.trade,
+      action: 'bill_recorded',
+      amount: amt,
+      description: `${newBill.project} - ${newBill.description}`,
+    });
     setBillModalContractor(null);
     loadData();
     showToast(`Work bill of ${formatINR(amt)} recorded`);
@@ -243,6 +267,14 @@ export default function ContractorsPage() {
     };
 
     addContractorPayment(payModalContractor.id, newPayment);
+    recordContractorActivity({
+      contractorId: payModalContractor.id,
+      contractorName: payModalContractor.name,
+      category: payModalContractor.trade,
+      action: 'payment_recorded',
+      amount: amt,
+      description: `Paid via ${payMode.toUpperCase()}${newPayment.notes ? `: ${newPayment.notes}` : ''}`,
+    });
     setPayModalContractor(null);
     loadData();
     showToast(`Payment of ${formatINR(amt)} recorded`);

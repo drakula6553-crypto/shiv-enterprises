@@ -33,6 +33,7 @@ import { formatINR, formatDateIN, todayISO, generateId } from '@/lib/utils';
 import { PAYMENT_MODES } from '@/lib/types';
 import type { Invoice, Payment, CompanyProfile } from '@/lib/types';
 import InvoicePreview from '@/components/InvoicePreview';
+import { recordBillActivity } from '@/lib/tracking';
 
 export default function BillsPage() {
   const router = useRouter();
@@ -137,6 +138,14 @@ export default function BillsPage() {
         notes: paymentNotes.trim(),
       };
       updateInvoicePayment(activePaymentInvoice.id, updatedPayment);
+      recordBillActivity({
+        billId: activePaymentInvoice.id,
+        invoiceNumber: activePaymentInvoice.invoiceNumber,
+        clientName: activePaymentInvoice.clientName,
+        grandTotal: amt,
+        action: 'payment_recorded',
+        notes: `Updated payment of Rs. ${amt.toLocaleString('en-IN')}`,
+      });
       showToast('Payment entry updated');
     } else {
       const newPayment: Payment = {
@@ -148,6 +157,14 @@ export default function BillsPage() {
         notes: paymentNotes.trim(),
       };
       addInvoicePayment(activePaymentInvoice.id, newPayment);
+      recordBillActivity({
+        billId: activePaymentInvoice.id,
+        invoiceNumber: activePaymentInvoice.invoiceNumber,
+        clientName: activePaymentInvoice.clientName,
+        grandTotal: amt,
+        action: 'payment_recorded',
+        notes: `Received Rs. ${amt.toLocaleString('en-IN')} via ${paymentMode.toUpperCase()}`,
+      });
       showToast('Payment recorded successfully');
     }
 
@@ -157,7 +174,17 @@ export default function BillsPage() {
 
   const handleDeletePayment = (invoiceId: string, paymentId: string) => {
     if (confirm('Delete this payment entry? The bill balance and status will be recalculated.')) {
+      const targetInv = invoices.find((i) => i.id === invoiceId);
       deleteInvoicePayment(invoiceId, paymentId);
+      if (targetInv) {
+        recordBillActivity({
+          billId: invoiceId,
+          invoiceNumber: targetInv.invoiceNumber,
+          clientName: targetInv.clientName,
+          grandTotal: targetInv.grandTotal,
+          action: 'payment_deleted',
+        });
+      }
       loadData();
       showToast('Payment removed');
     }
@@ -165,7 +192,15 @@ export default function BillsPage() {
 
   const handleDeleteBill = (id: string, num: string) => {
     if (confirm(`Delete invoice ${num}? This cannot be undone.`)) {
+      const targetInv = invoices.find((i) => i.id === id);
       deleteInvoice(id);
+      recordBillActivity({
+        billId: id,
+        invoiceNumber: num,
+        clientName: targetInv?.clientName || 'Deleted Bill',
+        grandTotal: targetInv?.grandTotal || 0,
+        action: 'deleted',
+      });
       loadData();
       showToast(`Bill ${num} deleted`);
     }
@@ -206,6 +241,13 @@ export default function BillsPage() {
 
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${inv.invoiceNumber}_${(inv.clientName || 'Bill').replace(/\s+/g, '_')}.pdf`);
+      recordBillActivity({
+        billId: inv.id,
+        invoiceNumber: inv.invoiceNumber,
+        clientName: inv.clientName,
+        grandTotal: inv.grandTotal,
+        action: 'downloaded_pdf',
+      });
       showToast(`Downloaded PDF for ${inv.invoiceNumber}`);
     } catch (err: any) {
       console.error('PDF error:', err);
