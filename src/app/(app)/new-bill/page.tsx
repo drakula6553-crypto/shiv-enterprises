@@ -14,6 +14,8 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
+  Building2,
+  MapPin,
 } from 'lucide-react';
 import {
   getCompanyProfile,
@@ -71,6 +73,19 @@ function InvoiceBuilderContent() {
   const [projectName, setProjectName] = useState<string>(
     'Harshail Iris Roshan Nager Borivali West.'
   );
+
+  // Project / Site Sub-division selection state
+  const [showAddProjectInput, setShowAddProjectInput] = useState<boolean>(false);
+  const [newProjectInput, setNewProjectInput] = useState<string>('');
+  const [customProjects, setCustomProjects] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = localStorage.getItem('se_custom_projects');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Quick mode single particulars & amount state
   const [quickParticulars, setQuickParticulars] = useState<string>(
@@ -181,7 +196,15 @@ function InvoiceBuilderContent() {
     setClientPhone(tpl.clientPhone || '');
     setClientAddress(tpl.clientAddress || '');
     setClientGstin(tpl.clientGstin || '');
-    setProjectName(tpl.projectName || '');
+
+    // Choose active project from template's projects or default projectName
+    const chosenProject =
+      tpl.projects && tpl.projects.length > 0
+        ? tpl.projects.includes(tpl.projectName)
+          ? tpl.projectName
+          : tpl.projects[0]
+        : tpl.projectName || '';
+    setProjectName(chosenProject);
 
     const prefix = tpl.billPrefix || tpl.seriesPrefix || 'RS';
     const nextSeriesNum = nextInvoiceNumber(getInvoices(), `${prefix} 09`);
@@ -206,6 +229,108 @@ function InvoiceBuilderContent() {
     setGstRate(tpl.defaultGstRate || tpl.gstRate || 18);
     setIsQuickMode(true);
     showToast(`Applied ${tpl.name} format`);
+  };
+
+  // Find active template object
+  const activeTemplate = templates.find((t) => t.id === selectedTemplateId);
+
+  // Active builder project sub-divisions
+  const currentBuilderProjects: string[] = React.useMemo(() => {
+    if (selectedTemplateId === 'custom') {
+      const allTplProjects = templates.flatMap((t) => t.projects || (t.projectName ? [t.projectName] : []));
+      const combined = Array.from(new Set([...customProjects, ...allTplProjects])).filter(Boolean);
+      return combined.length > 0
+        ? combined
+        : ['Harshail Iris Roshan Nager Borivali West.', 'Sunrise Enclave Tower B Substructure'];
+    }
+    if (activeTemplate) {
+      if (Array.isArray(activeTemplate.projects) && activeTemplate.projects.length > 0) {
+        return activeTemplate.projects;
+      }
+      return [activeTemplate.projectName].filter(Boolean);
+    }
+    return [projectName].filter(Boolean);
+  }, [selectedTemplateId, activeTemplate, customProjects, templates, projectName]);
+
+  const handleSelectProject = (proj: string) => {
+    setProjectName(proj);
+
+    // Save to template so this builder remembers this as the active project
+    if (selectedTemplateId && selectedTemplateId !== 'custom') {
+      const updated = templates.map((t) => {
+        if (t.id === selectedTemplateId) {
+          return { ...t, projectName: proj };
+        }
+        return t;
+      });
+      setTemplates(updated);
+      const targetTpl = updated.find((t) => t.id === selectedTemplateId);
+      if (targetTpl) saveTemplate(targetTpl);
+    }
+    showToast(`Site updated: ${proj}`);
+  };
+
+  const handleAddNewProject = (val: string) => {
+    const trimmed = val.trim();
+    if (!trimmed) return;
+
+    if (selectedTemplateId === 'custom') {
+      const nextCustom = Array.from(new Set([trimmed, ...customProjects]));
+      setCustomProjects(nextCustom);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('se_custom_projects', JSON.stringify(nextCustom));
+      }
+      setProjectName(trimmed);
+      showToast(`Added custom project: ${trimmed}`);
+      return;
+    }
+
+    if (activeTemplate) {
+      const currentProjects = activeTemplate.projects || [activeTemplate.projectName].filter(Boolean);
+      const updatedProjects = Array.from(new Set([trimmed, ...currentProjects]));
+      const updatedTpl: InvoiceTemplate = {
+        ...activeTemplate,
+        projects: updatedProjects,
+        projectName: trimmed,
+      };
+      saveTemplate(updatedTpl);
+      setTemplates((prev) => prev.map((t) => (t.id === selectedTemplateId ? updatedTpl : t)));
+      setProjectName(trimmed);
+      showToast(`Added project for ${activeTemplate.clientName}: ${trimmed}`);
+    }
+  };
+
+  const handleRemoveProject = (projToRemove: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(`Remove project "${projToRemove}" from this builder's presets?`)) return;
+
+    if (selectedTemplateId === 'custom') {
+      const nextCustom = customProjects.filter((p) => p !== projToRemove);
+      setCustomProjects(nextCustom);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('se_custom_projects', JSON.stringify(nextCustom));
+      }
+      if (projectName === projToRemove) setProjectName('');
+      showToast(`Removed project: ${projToRemove}`);
+      return;
+    }
+
+    if (activeTemplate) {
+      const currentProjects = activeTemplate.projects || [activeTemplate.projectName].filter(Boolean);
+      const updatedProjects = currentProjects.filter((p) => p !== projToRemove);
+      const fallback = updatedProjects[0] || '';
+      const updatedTpl: InvoiceTemplate = {
+        ...activeTemplate,
+        projects: updatedProjects,
+        projectName: projectName === projToRemove ? fallback : activeTemplate.projectName,
+      };
+      saveTemplate(updatedTpl);
+      setTemplates((prev) => prev.map((t) => (t.id === selectedTemplateId ? updatedTpl : t)));
+      if (projectName === projToRemove) {
+        setProjectName(fallback);
+      }
+      showToast(`Removed project: ${projToRemove}`);
+    }
   };
 
   const handleQuickParticularsChange = (val: string) => {
@@ -539,7 +664,9 @@ function InvoiceBuilderContent() {
                 Harshmaan spaces LLP
               </span>
               <span className="text-[11px] text-neutral-500 block truncate">
-                Harshail Iris Borivali (RS 08 format)
+                {selectedTemplateId === 'tpl_harshmaan' && projectName
+                  ? projectName
+                  : 'Harshail Iris Borivali (RS 08 format)'}
               </span>
             </div>
           </button>
@@ -562,7 +689,9 @@ function InvoiceBuilderContent() {
                 Sunrise Realty
               </span>
               <span className="text-[11px] text-neutral-500 block truncate">
-                Sunrise Enclave Tower B
+                {selectedTemplateId === 'tpl_sunrise' && projectName
+                  ? projectName
+                  : 'Sunrise Enclave Tower B'}
               </span>
             </div>
           </button>
@@ -585,10 +714,159 @@ function InvoiceBuilderContent() {
                 Custom / Blank bill
               </span>
               <span className="text-[11px] text-neutral-500 block truncate">
-                Create bill for any client
+                {selectedTemplateId === 'custom' && projectName
+                  ? projectName
+                  : 'Create bill for any client'}
               </span>
             </div>
           </button>
+        </div>
+
+        {/* ─── PROJECT / SITE SUB-DIVISION SELECTOR ─── */}
+        <div className="mt-4 pt-4 border-t border-neutral-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-amber-600" />
+                <span className="text-xs font-semibold text-neutral-900">
+                  Select Project / Site Sub-Division
+                </span>
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/60">
+                  {selectedTemplateId === 'custom'
+                    ? clientName || 'Custom Client'
+                    : activeTemplate?.clientName || 'Builder'}
+                </span>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-0.5">
+                Choose the project/site this bill is generated for (printed as{' '}
+                <strong className="font-mono text-neutral-700">&quot;Ref: [Project]&quot;</strong> on official letterhead)
+              </p>
+            </div>
+
+            {!showAddProjectInput && (
+              <button
+                type="button"
+                onClick={() => setShowAddProjectInput(true)}
+                className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/80 px-2.5 py-1.5 rounded-lg border border-amber-200/80 transition self-start sm:self-auto"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add Project / Site</span>
+              </button>
+            )}
+          </div>
+
+          {/* Add New Project Input */}
+          {showAddProjectInput && (
+            <div className="mb-3.5 p-3 rounded-lg bg-amber-50/70 border border-amber-200 transition">
+              <span className="text-[11px] font-semibold text-neutral-800 block mb-1.5">
+                Add new site / project sub-division for{' '}
+                {selectedTemplateId === 'custom'
+                  ? clientName || 'this bill'
+                  : activeTemplate?.clientName}
+              </span>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="relative flex-1">
+                  <MapPin className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={newProjectInput}
+                    onChange={(e) => setNewProjectInput(e.target.value)}
+                    placeholder="e.g. Harshail Heights Dahisar East or Tower C Wing 2"
+                    className="w-full text-xs pl-8 pr-3 h-8 rounded-md border border-neutral-300 bg-white text-neutral-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (newProjectInput.trim()) {
+                          handleAddNewProject(newProjectInput);
+                          setNewProjectInput('');
+                          setShowAddProjectInput(false);
+                        }
+                      }
+                    }}
+                    autoFocus
+                  />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newProjectInput.trim()) {
+                        handleAddNewProject(newProjectInput);
+                        setNewProjectInput('');
+                        setShowAddProjectInput(false);
+                      }
+                    }}
+                    className="px-3 h-8 text-xs font-medium rounded-md bg-neutral-900 hover:bg-black text-white transition flex items-center gap-1"
+                  >
+                    <Check className="w-3 h-3" />
+                    <span>Add &amp; Select</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddProjectInput(false);
+                      setNewProjectInput('');
+                    }}
+                    className="px-2.5 h-8 text-xs font-medium rounded-md bg-white hover:bg-neutral-50 text-neutral-600 border border-neutral-300 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Project List Chips */}
+          <div className="flex flex-wrap items-center gap-2">
+            {currentBuilderProjects.map((proj) => {
+              const isSelected = projectName.trim().toLowerCase() === proj.trim().toLowerCase();
+              return (
+                <div
+                  key={proj}
+                  className={`group inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-lg border text-xs transition cursor-pointer ${
+                    isSelected
+                      ? 'bg-neutral-900 border-neutral-900 text-white font-medium shadow-sm'
+                      : 'bg-white hover:bg-neutral-50 border-neutral-200 hover:border-neutral-300 text-neutral-700'
+                  }`}
+                  onClick={() => handleSelectProject(proj)}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isSelected ? 'bg-amber-400' : 'bg-neutral-300 group-hover:bg-neutral-400'
+                    }`}
+                  />
+                  <span className="truncate max-w-[240px] sm:max-w-[340px]">{proj}</span>
+                  {isSelected ? (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-amber-300">
+                      Active Ref
+                    </span>
+                  ) : null}
+
+                  {/* Remove Project Button */}
+                  {currentBuilderProjects.length > 1 && (
+                    <button
+                      type="button"
+                      title={`Remove ${proj}`}
+                      onClick={(e) => handleRemoveProject(proj, e)}
+                      className={`ml-1 p-0.5 rounded transition ${
+                        isSelected
+                          ? 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+                          : 'text-neutral-300 hover:text-red-600 hover:bg-red-50'
+                      }`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+
+            {currentBuilderProjects.length === 0 && (
+              <span className="text-xs text-neutral-400 italic">
+                No site sub-divisions found. Click &quot;+ Add Project / Site&quot; to add one.
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -754,9 +1032,24 @@ function InvoiceBuilderContent() {
                         />
                       </div>
                       <div>
-                        <span className="text-[11px] font-medium text-neutral-600 block mb-0.5">
-                          Site reference
-                        </span>
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-[11px] font-medium text-neutral-600 block">
+                            Site reference
+                          </span>
+                          {projectName.trim() &&
+                            !currentBuilderProjects.some(
+                              (p) => p.trim().toLowerCase() === projectName.trim().toLowerCase()
+                            ) && (
+                              <button
+                                type="button"
+                                onClick={() => handleAddNewProject(projectName)}
+                                className="text-[10px] text-amber-700 hover:text-amber-800 font-medium flex items-center gap-0.5"
+                              >
+                                <Plus className="w-2.5 h-2.5" />
+                                Save as preset
+                              </button>
+                            )}
+                        </div>
                         <input
                           type="text"
                           value={projectName}
@@ -862,9 +1155,24 @@ function InvoiceBuilderContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-neutral-700 mb-1">
-                    Site / Project reference
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-medium text-neutral-700">
+                      Site / Project reference
+                    </label>
+                    {projectName.trim() &&
+                      !currentBuilderProjects.some(
+                        (p) => p.trim().toLowerCase() === projectName.trim().toLowerCase()
+                      ) && (
+                        <button
+                          type="button"
+                          onClick={() => handleAddNewProject(projectName)}
+                          className="text-[10px] text-amber-700 hover:text-amber-800 font-medium flex items-center gap-0.5"
+                        >
+                          <Plus className="w-2.5 h-2.5" />
+                          Save as preset
+                        </button>
+                      )}
+                  </div>
                   <input
                     type="text"
                     value={projectName}

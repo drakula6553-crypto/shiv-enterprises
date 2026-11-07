@@ -48,7 +48,18 @@ export function getTemplates(): InvoiceTemplate[] {
       return DEFAULT_TEMPLATES;
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_TEMPLATES;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((item: InvoiceTemplate) => {
+        const seed = DEFAULT_TEMPLATES.find((s) => s.id === item.id);
+        const hasProjects = Array.isArray(item.projects) && item.projects.length > 0;
+        const fallbackProjects = seed?.projects || (item.projectName ? [item.projectName] : []);
+        return {
+          ...item,
+          projects: hasProjects ? item.projects : fallbackProjects,
+        };
+      });
+    }
+    return DEFAULT_TEMPLATES;
   } catch {
     return DEFAULT_TEMPLATES;
   }
@@ -64,6 +75,38 @@ export function saveTemplate(tpl: InvoiceTemplate): void {
     list.push(tpl);
   }
   localStorage.setItem(KEYS.templates, JSON.stringify(list));
+}
+
+export function addProjectToTemplate(templateId: string, newProjectName: string): InvoiceTemplate[] {
+  if (typeof window === 'undefined') return DEFAULT_TEMPLATES;
+  const trimmed = newProjectName.trim();
+  if (!trimmed) return getTemplates();
+
+  const list = getTemplates();
+  const tpl = list.find((t) => t.id === templateId);
+  if (tpl) {
+    const currentProjects = tpl.projects || (tpl.projectName ? [tpl.projectName] : []);
+    if (!currentProjects.includes(trimmed)) {
+      tpl.projects = [...currentProjects, trimmed];
+      tpl.projectName = trimmed;
+      saveTemplate(tpl);
+    }
+  }
+  return getTemplates();
+}
+
+export function removeProjectFromTemplate(templateId: string, projectToRemove: string): InvoiceTemplate[] {
+  if (typeof window === 'undefined') return DEFAULT_TEMPLATES;
+  const list = getTemplates();
+  const tpl = list.find((t) => t.id === templateId);
+  if (tpl && tpl.projects) {
+    tpl.projects = tpl.projects.filter((p) => p !== projectToRemove);
+    if (tpl.projectName === projectToRemove && tpl.projects.length > 0) {
+      tpl.projectName = tpl.projects[0];
+    }
+    saveTemplate(tpl);
+  }
+  return getTemplates();
 }
 
 export function deleteTemplate(id: string): void {

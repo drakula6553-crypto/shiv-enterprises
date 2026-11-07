@@ -30,6 +30,7 @@ import {
   deleteExpense,
   getCompanyProfile,
   updateExpenseReceipt,
+  getTemplates,
 } from '@/lib/storage';
 import { formatINR, formatDateIN, todayISO, generateId } from '@/lib/utils';
 import { EXPENSE_CATEGORIES, PAYMENT_MODES } from '@/lib/types';
@@ -135,6 +136,12 @@ export default function ExpensesPage() {
     setExpenses(getExpenses());
     setCompanyProfile(getCompanyProfile());
   };
+
+  const knownProjects = React.useMemo(() => {
+    const tplProjects = getTemplates().flatMap((t) => t.projects || (t.projectName ? [t.projectName] : []));
+    const expProjects = expenses.map((e) => e.projectName).filter(Boolean);
+    return Array.from(new Set([...tplProjects, ...expProjects])).filter(Boolean);
+  }, [expenses]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -780,11 +787,17 @@ export default function ExpensesPage() {
                   </label>
                   <input
                     type="text"
+                    list="site-projects-datalist"
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
                     placeholder="e.g. Harshail Iris Borivali"
                     className="w-full px-3 h-9 rounded-lg border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900"
                   />
+                  <datalist id="site-projects-datalist">
+                    {knownProjects.map((p) => (
+                      <option key={p} value={p} />
+                    ))}
+                  </datalist>
                 </div>
 
                 <div>

@@ -66,6 +66,7 @@ export async function pushAllToSupabase(): Promise<SyncResult> {
         client_address: t.clientAddress,
         client_gstin: t.clientGstin,
         project_name: t.projectName,
+        projects: t.projects || [],
         bill_prefix: t.billPrefix || 'RS',
         default_gst_rate: t.defaultGstRate || 18,
         default_particulars: t.defaultParticulars,
@@ -183,6 +184,7 @@ export async function pullAllFromSupabase(): Promise<SyncResult> {
     const { data: remoteContractors } = await supabase.from('contractors').select('*');
     const { data: remoteExpenses } = await supabase.from('expenses').select('*');
     const { data: remoteProfile } = await supabase.from('company_profile').select('*').limit(1).single();
+    const { data: remoteTemplates } = await supabase.from('invoice_templates').select('*');
 
     if (remoteProfile) {
       saveCompanyProfile({
@@ -288,7 +290,27 @@ export async function pullAllFromSupabase(): Promise<SyncResult> {
       localStorage.setItem('se_expenses', JSON.stringify(mappedExpenses));
     }
 
-    const totalPulled = (remoteInvoices?.length || 0) + (remoteContractors?.length || 0) + (remoteExpenses?.length || 0);
+    if (Array.isArray(remoteTemplates) && remoteTemplates.length > 0) {
+      const mappedTemplates: InvoiceTemplate[] = remoteTemplates.map((row) => ({
+        id: row.id,
+        name: row.name,
+        clientName: row.client_name,
+        clientPhone: row.client_phone || '',
+        clientAddress: row.client_address || '',
+        clientGstin: row.client_gstin || '',
+        projectName: row.project_name || '',
+        projects: Array.isArray(row.projects) && row.projects.length > 0
+          ? row.projects
+          : (row.project_name ? [row.project_name] : []),
+        billPrefix: row.bill_prefix || 'RS',
+        defaultGstRate: Number(row.default_gst_rate) || 18,
+        defaultParticulars: row.default_particulars,
+        isDefault: row.is_default || false,
+      }));
+      localStorage.setItem('se_templates', JSON.stringify(mappedTemplates));
+    }
+
+    const totalPulled = (remoteInvoices?.length || 0) + (remoteContractors?.length || 0) + (remoteExpenses?.length || 0) + (remoteTemplates?.length || 0);
     return {
       success: true,
       message: `Downloaded ${totalPulled} records from Supabase Cloud.`,

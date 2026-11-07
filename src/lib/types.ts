@@ -48,6 +48,7 @@ export interface InvoiceTemplate {
   clientAddress: string;
   clientGstin: string;
   projectName: string;
+  projects?: string[]; // Project sub-divisions for this builder / client
   billPrefix: string; // e.g. "RS"
   seriesPrefix?: string;
   defaultGstRate: number; // e.g. 18
