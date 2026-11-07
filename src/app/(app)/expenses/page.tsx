@@ -23,6 +23,7 @@ import {
   AlertCircle,
   FileCheck,
   FileWarning,
+  RefreshCw,
 } from 'lucide-react';
 import {
   getExpenses,
@@ -36,6 +37,13 @@ import { formatINR, formatDateIN, todayISO, generateId } from '@/lib/utils';
 import { EXPENSE_CATEGORIES, PAYMENT_MODES } from '@/lib/types';
 import type { Expense, ExpenseCategory, CompanyProfile } from '@/lib/types';
 import { recordExpenseActivity } from '@/lib/tracking';
+import {
+  uploadReceiptToCloud,
+  syncExpenseToCloud,
+  deleteExpenseFromCloud,
+  fetchExpensesFromCloud,
+} from '@/lib/cloudSync';
+import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 // Helper to compress camera/gallery images before storing
 function compressImage(file: File): Promise<{ dataUrl: string; name: string; type: 'image' }> {
@@ -128,15 +136,46 @@ export default function ExpensesPage() {
   const [viewingReceiptExpense, setViewingReceiptExpense] = useState<Expense | null>(null);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+  const [lastSynced, setLastSynced] = useState<string>('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = () => {
+  const loadData = async (forceCloud = true) => {
+    // 1. Instant local render
     setExpenses(getExpenses());
     setCompanyProfile(getCompanyProfile());
+
+    // 2. Live Cloud fetch from Supabase
+    if (forceCloud) {
+      setIsSyncingCloud(true);
+      try {
+        const live = await fetchExpensesFromCloud();
+        setExpenses(live);
+        setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
+      } catch (err) {
+        console.warn('Cloud fetch error:', err);
+      } finally {
+        setIsSyncingCloud(false);
+      }
+    }
   };
+
+  useEffect(() => {
+    loadData(true);
+
+    // Live Realtime listener for cross-device updates (Girish, Kishor, Harsh)
+    if (isSupabaseConfigured && supabase) {
+      const channel = supabase
+        .channel('expenses-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => {
+          loadData(true);
+        })
+        .subscribe();
+
+      return () => {
+        if (supabase) supabase.removeChannel(channel);
+      };
+    }
+  }, []);
 
   const knownProjects = React.useMemo(() => {
     const tplProjects = getTemplates().flatMap((t) => t.projects || (t.projectName ? [t.projectName] : []));
@@ -223,17 +262,11 @@ export default function ExpensesPage() {
 
     setIsProcessingFile(true);
     try {
-      if (file.type === 'application/pdf') {
-        const res = await processPdf(file);
-        setReceiptUrl(res.dataUrl);
-        setReceiptName(res.name);
-        setReceiptType('pdf');
-      } else {
-        const res = await compressImage(file);
-        setReceiptUrl(res.dataUrl);
-        setReceiptName(res.name);
-        setReceiptType('image');
-      }
+      const res = await uploadReceiptToCloud(file);
+      setReceiptUrl(res.url);
+      setReceiptName(res.name);
+      setReceiptType(res.type);
+      showToast('Bill document uploaded & ready');
     } catch (err) {
       console.error('File process error:', err);
       alert('Could not process this file. Please try a different photo or PDF.');
@@ -248,7 +281,7 @@ export default function ExpensesPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleSaveExpense = (e: React.FormEvent) => {
+  const handleSaveExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0) {
@@ -280,6 +313,7 @@ export default function ExpensesPage() {
     };
 
     saveExpense(newExp);
+    await syncExpenseToCloud(newExp);
     recordExpenseActivity({
       expenseId: newExp.id,
       paidTo: newExp.paidTo,
@@ -289,9 +323,9 @@ export default function ExpensesPage() {
       billNumber: newExp.billNumber,
       action: editingExpense ? 'updated' : 'created',
     });
-    loadData();
+    loadData(false);
     setShowModal(false);
-    showToast(editingExpense ? 'Purchase voucher updated' : 'Purchase recorded successfully');
+    showToast(editingExpense ? 'Purchase voucher updated' : 'Purchase recorded & synced to cloud');
   };
 
   // Quick Upload Afterwards handlers
@@ -308,17 +342,11 @@ export default function ExpensesPage() {
 
     setIsProcessingFile(true);
     try {
-      if (file.type === 'application/pdf') {
-        const res = await processPdf(file);
-        setQuickReceiptUrl(res.dataUrl);
-        setQuickReceiptName(res.name);
-        setQuickReceiptType('pdf');
-      } else {
-        const res = await compressImage(file);
-        setQuickReceiptUrl(res.dataUrl);
-        setQuickReceiptName(res.name);
-        setQuickReceiptType('image');
-      }
+      const res = await uploadReceiptToCloud(file);
+      setQuickReceiptUrl(res.url);
+      setQuickReceiptName(res.name);
+      setQuickReceiptType(res.type);
+      showToast('Bill document uploaded to cloud');
     } catch (err) {
       console.error('File process error:', err);
       alert('Could not process this file. Please try a different photo or PDF.');
@@ -327,15 +355,19 @@ export default function ExpensesPage() {
     }
   };
 
-  const handleSaveQuickReceipt = () => {
+  const handleSaveQuickReceipt = async () => {
     if (!quickUploadExpense || !quickReceiptUrl) return;
 
-    updateExpenseReceipt(
+    const updated = updateExpenseReceipt(
       quickUploadExpense.id,
       quickReceiptUrl,
       quickReceiptName || 'Bill Document',
       quickReceiptType
     );
+
+    if (updated) {
+      await syncExpenseToCloud(updated);
+    }
 
     recordExpenseActivity({
       expenseId: quickUploadExpense.id,
@@ -347,15 +379,16 @@ export default function ExpensesPage() {
       action: 'receipt_uploaded',
     });
 
-    loadData();
+    loadData(false);
     setQuickUploadExpense(null);
-    showToast(`Bill attached to voucher for ${quickUploadExpense.paidTo}`);
+    showToast(`Bill attached & visible to all partners and admin!`);
   };
 
-  const handleDeleteExpense = (id: string, desc: string) => {
+  const handleDeleteExpense = async (id: string, desc: string) => {
     if (confirm(`Delete purchase entry "${desc}"?`)) {
       const target = expenses.find((e) => e.id === id);
       deleteExpense(id);
+      await deleteExpenseFromCloud(id);
       if (target) {
         recordExpenseActivity({
           expenseId: id,
@@ -367,8 +400,8 @@ export default function ExpensesPage() {
           action: 'deleted',
         });
       }
-      loadData();
-      showToast('Entry removed');
+      loadData(false);
+      showToast('Entry removed from cloud');
     }
   };
 
@@ -393,23 +426,43 @@ export default function ExpensesPage() {
       )}
 
       {/* Top Header */}
-      <div className="flex items-center justify-between gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-semibold text-neutral-900 tracking-tight">
-            Purchases & expenses
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-semibold text-neutral-900 tracking-tight">
+              Purchases &amp; expenses
+            </h1>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Cloud Synced
+            </span>
+          </div>
           <p className="text-xs text-neutral-500 mt-0.5">
-            Materials bought, equipment hire, transport and site bill receipts
+            Materials bought, equipment hire, transport and site bill receipts • Shared across all partners &amp; admin
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleOpenAdd}
-          className="bg-[#0B0F17] hover:bg-[#151D2A] active:bg-[#070A0F] text-white rounded-lg px-3.5 h-9 flex items-center gap-1.5 font-medium text-xs touch-target nav-transition action-press border border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
-        >
-          <Plus size={16} strokeWidth={1.5} className="text-amber-400" />
-          <span>Record purchase</span>
-        </button>
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => loadData(true)}
+            disabled={isSyncingCloud}
+            className="px-3 h-9 rounded-lg border border-neutral-200 hover:border-neutral-300 bg-white text-neutral-700 hover:text-neutral-900 text-xs font-medium flex items-center gap-1.5 shadow-xs transition disabled:opacity-60"
+            title="Refresh from Supabase Cloud"
+          >
+            <RefreshCw size={13} className={isSyncingCloud ? 'animate-spin text-amber-600' : 'text-neutral-400'} />
+            <span>{isSyncingCloud ? 'Syncing...' : 'Sync Cloud'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="bg-[#0B0F17] hover:bg-[#151D2A] active:bg-[#070A0F] text-white rounded-lg px-3.5 h-9 flex items-center gap-1.5 font-medium text-xs touch-target nav-transition action-press border border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+          >
+            <Plus size={16} strokeWidth={1.5} className="text-amber-400" />
+            <span>Record purchase</span>
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}

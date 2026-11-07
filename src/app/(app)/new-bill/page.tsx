@@ -39,6 +39,7 @@ import type { Invoice, LineItem, CompanyProfile, InvoiceTemplate, InvoiceCreator
 import InvoicePreview from '@/components/InvoicePreview';
 import { getCurrentUser } from '@/lib/auth';
 import { recordBillActivity } from '@/lib/tracking';
+import { syncInvoiceToCloud } from '@/lib/cloudSync';
 
 function InvoiceBuilderContent() {
   const router = useRouter();
@@ -518,6 +519,7 @@ function InvoiceBuilderContent() {
     };
 
     saveInvoice(invoiceToSave);
+    syncInvoiceToCloud(invoiceToSave);
 
     // Record tracking event
     const activeUser = user || {

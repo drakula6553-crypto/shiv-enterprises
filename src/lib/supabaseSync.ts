@@ -147,6 +147,8 @@ export async function pushAllToSupabase(): Promise<SyncResult> {
         payment_mode: exp.paymentMode,
         status: exp.status,
         receipt_url: exp.receiptUrl,
+        receipt_name: exp.receiptName || null,
+        receipt_type: exp.receiptType || 'image',
         notes: exp.notes,
       }));
       await supabase.from('expenses').upsert(formattedExpenses);
@@ -283,6 +285,8 @@ export async function pullAllFromSupabase(): Promise<SyncResult> {
         paymentMode: row.payment_mode,
         status: row.status,
         receiptUrl: row.receipt_url,
+        receiptName: row.receipt_name || undefined,
+        receiptType: row.receipt_type || 'image',
         notes: row.notes,
         createdAt: row.created_at,
         updatedAt: row.updated_at,

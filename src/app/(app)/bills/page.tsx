@@ -34,6 +34,12 @@ import { PAYMENT_MODES } from '@/lib/types';
 import type { Invoice, Payment, CompanyProfile } from '@/lib/types';
 import InvoicePreview from '@/components/InvoicePreview';
 import { recordBillActivity } from '@/lib/tracking';
+import {
+  fetchInvoicesFromCloud,
+  syncInvoiceToCloud,
+  deleteInvoiceFromCloud,
+} from '@/lib/cloudSync';
+import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 export default function BillsPage() {
   const router = useRouter();
@@ -61,12 +67,34 @@ export default function BillsPage() {
   const billExportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadData();
+    loadData(true);
+
+    if (isSupabaseConfigured && supabase) {
+      const channel = supabase
+        .channel('invoices-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => {
+          loadData(true);
+        })
+        .subscribe();
+
+      return () => {
+        if (supabase) supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
-  const loadData = () => {
+  const loadData = async (forceCloud = false) => {
     setInvoices(getInvoices());
     setCompanyProfile(getCompanyProfile());
+
+    if (forceCloud) {
+      try {
+        const live = await fetchInvoicesFromCloud();
+        setInvoices(live);
+      } catch (err) {
+        console.warn('Cloud bills fetch error:', err);
+      }
+    }
   };
 
   const showToast = (msg: string) => {
@@ -118,7 +146,7 @@ export default function BillsPage() {
     setPaymentNotes(payment.notes || '');
   };
 
-  const handleSavePayment = (e: React.FormEvent) => {
+  const handleSavePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activePaymentInvoice) return;
 
@@ -127,6 +155,8 @@ export default function BillsPage() {
       alert('Please enter a valid positive payment amount.');
       return;
     }
+
+    let updatedInv: Invoice | null = null;
 
     if (editingPayment) {
       const updatedPayment: Payment = {
@@ -137,7 +167,7 @@ export default function BillsPage() {
         reference: paymentRef.trim(),
         notes: paymentNotes.trim(),
       };
-      updateInvoicePayment(activePaymentInvoice.id, updatedPayment);
+      updatedInv = updateInvoicePayment(activePaymentInvoice.id, updatedPayment);
       recordBillActivity({
         billId: activePaymentInvoice.id,
         invoiceNumber: activePaymentInvoice.invoiceNumber,
@@ -156,7 +186,7 @@ export default function BillsPage() {
         reference: paymentRef.trim(),
         notes: paymentNotes.trim(),
       };
-      addInvoicePayment(activePaymentInvoice.id, newPayment);
+      updatedInv = addInvoicePayment(activePaymentInvoice.id, newPayment);
       recordBillActivity({
         billId: activePaymentInvoice.id,
         invoiceNumber: activePaymentInvoice.invoiceNumber,
@@ -168,14 +198,21 @@ export default function BillsPage() {
       showToast('Payment recorded successfully');
     }
 
+    if (updatedInv) {
+      await syncInvoiceToCloud(updatedInv);
+    }
+
     loadData();
     setActivePaymentInvoice(null);
   };
 
-  const handleDeletePayment = (invoiceId: string, paymentId: string) => {
+  const handleDeletePayment = async (invoiceId: string, paymentId: string) => {
     if (confirm('Delete this payment entry? The bill balance and status will be recalculated.')) {
       const targetInv = invoices.find((i) => i.id === invoiceId);
-      deleteInvoicePayment(invoiceId, paymentId);
+      const updated = deleteInvoicePayment(invoiceId, paymentId);
+      if (updated) {
+        await syncInvoiceToCloud(updated);
+      }
       if (targetInv) {
         recordBillActivity({
           billId: invoiceId,
@@ -190,10 +227,11 @@ export default function BillsPage() {
     }
   };
 
-  const handleDeleteBill = (id: string, num: string) => {
+  const handleDeleteBill = async (id: string, num: string) => {
     if (confirm(`Delete invoice ${num}? This cannot be undone.`)) {
       const targetInv = invoices.find((i) => i.id === id);
       deleteInvoice(id);
+      await deleteInvoiceFromCloud(id);
       recordBillActivity({
         billId: id,
         invoiceNumber: num,

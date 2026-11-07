@@ -31,6 +31,12 @@ import { formatINR, formatDateIN, todayISO, generateId } from '@/lib/utils';
 import { TRADE_OPTIONS, PAYMENT_MODES } from '@/lib/types';
 import type { Contractor, ContractorBill, ContractorPayment, CompanyProfile } from '@/lib/types';
 import { recordContractorActivity } from '@/lib/tracking';
+import {
+  fetchContractorsFromCloud,
+  syncContractorToCloud,
+  deleteContractorFromCloud,
+} from '@/lib/cloudSync';
+import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 interface LedgerEntry {
   id: string;
@@ -83,10 +89,23 @@ export default function ContractorsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    loadData();
+    loadData(true);
+
+    if (isSupabaseConfigured && supabase) {
+      const channel = supabase
+        .channel('contractors-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'contractors' }, () => {
+          loadData(true);
+        })
+        .subscribe();
+
+      return () => {
+        if (supabase) supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
-  const loadData = () => {
+  const loadData = async (forceCloud = false) => {
     const list = getContractors();
     setContractors(list);
     setCompanyProfile(getCompanyProfile());
@@ -94,6 +113,19 @@ export default function ContractorsPage() {
     if (activeLedgerContractor) {
       const refreshed = list.find((c) => c.id === activeLedgerContractor.id);
       if (refreshed) setActiveLedgerContractor(refreshed);
+    }
+
+    if (forceCloud) {
+      try {
+        const live = await fetchContractorsFromCloud();
+        setContractors(live);
+        if (activeLedgerContractor) {
+          const refreshed = live.find((c) => c.id === activeLedgerContractor.id);
+          if (refreshed) setActiveLedgerContractor(refreshed);
+        }
+      } catch (err) {
+        console.warn('Cloud contractors fetch error:', err);
+      }
     }
   };
 
@@ -142,7 +174,7 @@ export default function ContractorsPage() {
   };
 
   // Save Contractor
-  const handleSaveContractor = (e: React.FormEvent) => {
+  const handleSaveContractor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cName.trim()) {
       alert('Please enter contractor name');
@@ -166,6 +198,7 @@ export default function ContractorsPage() {
     };
 
     saveContractor(contractor);
+    await syncContractorToCloud(contractor);
     recordContractorActivity({
       contractorId: contractor.id,
       contractorName: contractor.name,
@@ -179,10 +212,11 @@ export default function ContractorsPage() {
   };
 
   // Delete Contractor
-  const handleDeleteContractor = (id: string, name: string) => {
+  const handleDeleteContractor = async (id: string, name: string) => {
     if (confirm(`Delete contractor "${name}" and all ledger history?`)) {
       const target = contractors.find((c) => c.id === id);
       deleteContractor(id);
+      await deleteContractorFromCloud(id);
       recordContractorActivity({
         contractorId: id,
         contractorName: name,
@@ -208,7 +242,7 @@ export default function ContractorsPage() {
   };
 
   // Save Work Bill
-  const handleSaveWorkBill = (e: React.FormEvent) => {
+  const handleSaveWorkBill = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!billModalContractor) return;
     const amt = parseFloat(billAmount);
@@ -225,7 +259,10 @@ export default function ContractorsPage() {
       amount: amt,
     };
 
-    addContractorBill(billModalContractor.id, newBill);
+    const updated = addContractorBill(billModalContractor.id, newBill);
+    if (updated) {
+      await syncContractorToCloud(updated);
+    }
     recordContractorActivity({
       contractorId: billModalContractor.id,
       contractorName: billModalContractor.name,
@@ -249,7 +286,7 @@ export default function ContractorsPage() {
   };
 
   // Save Payment Made
-  const handleSavePayment = (e: React.FormEvent) => {
+  const handleSavePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!payModalContractor) return;
     const amt = parseFloat(payAmount);
@@ -266,7 +303,10 @@ export default function ContractorsPage() {
       notes: payNotes.trim(),
     };
 
-    addContractorPayment(payModalContractor.id, newPayment);
+    const updated = addContractorPayment(payModalContractor.id, newPayment);
+    if (updated) {
+      await syncContractorToCloud(updated);
+    }
     recordContractorActivity({
       contractorId: payModalContractor.id,
       contractorName: payModalContractor.name,
