@@ -25,6 +25,7 @@ export interface CompanyProfile {
 export interface LineItem {
   id: string;
   description: string;
+  category?: string; // Optional work category e.g. "RCC Slab Work", "Plastering", etc.
   unit: string;
   quantity: number;
   rate: number;
@@ -150,7 +151,8 @@ export type ExpenseCategory =
   | 'Site Labour'     // Kharchi, daily wages, labour advance
   | 'Site Tea/Food'   // Snacks, drinking water
   | 'Office/Govt'     // Municipal fees, drawings printing
-  | 'Other';
+  | 'Other'
+  | (string & {});
 
 export interface Expense {
   id: string;
@@ -180,6 +182,24 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   'Site Tea/Food',
   'Office/Govt',
   'Other',
+];
+
+// Contractor Work Categories for Bill Particulars
+export const BILL_PARTICULAR_CATEGORIES = [
+  'RCC Slab Work',
+  'Column & Beam Casting',
+  'Shuttering / Centering',
+  'Steel Binding / Rebars',
+  'Brickwork & Masonry',
+  'Plastering Work',
+  'Waterproofing',
+  'Excavation & Earthwork',
+  'Flooring & Tiling',
+  'Plumbing & Drainage',
+  'Electrical Work',
+  'Painting & Finishing',
+  'Labour / Supervision',
+  'General Civil Work',
 ];
 
 // Common unit options for line items

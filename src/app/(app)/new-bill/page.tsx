@@ -24,6 +24,8 @@ import {
   getInvoice,
   getTemplates,
   saveTemplate,
+  getCustomBillCategories,
+  saveCustomBillCategory,
 } from '@/lib/storage';
 import {
   generateId,
@@ -34,7 +36,7 @@ import {
   nextInvoiceNumber,
   calcRoundOff,
 } from '@/lib/utils';
-import { UNIT_OPTIONS, GST_RATES } from '@/lib/types';
+import { UNIT_OPTIONS, GST_RATES, BILL_PARTICULAR_CATEGORIES } from '@/lib/types';
 import type { Invoice, LineItem, CompanyProfile, InvoiceTemplate, InvoiceCreator } from '@/lib/types';
 import InvoicePreview from '@/components/InvoicePreview';
 import { getCurrentUser } from '@/lib/auth';
@@ -88,17 +90,22 @@ function InvoiceBuilderContent() {
     }
   });
 
-  // Quick mode single particulars & amount state
-  const [quickParticulars, setQuickParticulars] = useState<string>(
-    '12th and 13th Rcc slab work completed as per Drawing.'
-  );
-  const [quickAmount, setQuickAmount] = useState<string>('1980000');
+  // Custom Bill Particular Categories
+  const [customBillCategories, setCustomBillCategories] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return getCustomBillCategories();
+  });
 
-  // Multi-item support (used in advanced mode)
+  const allBillCategories = React.useMemo(() => {
+    return Array.from(new Set([...BILL_PARTICULAR_CATEGORIES, ...customBillCategories]));
+  }, [customBillCategories]);
+
+  // Line items state (supports multiple particulars with description, category, and amount)
   const [lineItems, setLineItems] = useState<LineItem[]>([
     {
       id: generateId(),
-      description: '10th and 11th Rcc slab work completed as per Drawing.',
+      description: '12th and 13th Rcc slab work completed as per Drawing.',
+      category: 'RCC Slab Work',
       unit: 'slab',
       quantity: 1,
       rate: 1980000,
@@ -148,13 +155,7 @@ function InvoiceBuilderContent() {
         setGstRate(inv.gstRate);
         setRoundOff(inv.roundOff);
 
-        if (inv.lineItems && inv.lineItems.length === 1) {
-          setIsQuickMode(true);
-          setQuickParticulars(inv.lineItems[0].description);
-          setQuickAmount(String(inv.lineItems[0].rate || inv.lineItems[0].amount));
-        } else {
-          setIsQuickMode(false);
-        }
+        setIsQuickMode(true);
       }
     } else {
       const nextNum = nextInvoiceNumber(existingInvoices, 'RS 09');
@@ -171,13 +172,12 @@ function InvoiceBuilderContent() {
       setClientAddress('');
       setClientGstin('');
       setProjectName('');
-      setQuickParticulars('');
-      setQuickAmount('0');
       setLineItems([
         {
           id: generateId(),
           description: '',
-          unit: 'sqft',
+          category: 'General Civil Work',
+          unit: 'item',
           quantity: 1,
           rate: 0,
           amount: 0,
@@ -185,7 +185,7 @@ function InvoiceBuilderContent() {
       ]);
       const nextInvNum = nextInvoiceNumber(getInvoices(), 'INV 01');
       setInvoiceNumber(nextInvNum);
-      setIsQuickMode(false);
+      setIsQuickMode(true);
       showToast('Switched to Custom Bill form');
       return;
     }
@@ -216,14 +216,21 @@ function InvoiceBuilderContent() {
         tpl.defaultLineItems.map((li: LineItem) => ({
           ...li,
           id: generateId(),
+          category: li.category || 'RCC Slab Work',
         }))
       );
-      if (tpl.defaultLineItems.length === 1) {
-        setQuickParticulars(tpl.defaultLineItems[0].description);
-        setQuickAmount(String(tpl.defaultLineItems[0].rate || tpl.defaultLineItems[0].amount));
-      }
     } else if (tpl.defaultParticulars) {
-      setQuickParticulars(tpl.defaultParticulars);
+      setLineItems([
+        {
+          id: generateId(),
+          description: tpl.defaultParticulars,
+          category: 'RCC Slab Work',
+          unit: 'slab',
+          quantity: 1,
+          rate: 1980000,
+          amount: 1980000,
+        },
+      ]);
     }
 
     setGstEnabled(tpl.gstEnabled ?? true);
@@ -334,33 +341,61 @@ function InvoiceBuilderContent() {
     }
   };
 
-  const handleQuickParticularsChange = (val: string) => {
-    setQuickParticulars(val);
-    setLineItems((prev) => [
-      {
-        id: prev[0]?.id || generateId(),
-        description: val,
-        unit: prev[0]?.unit || 'slab',
-        quantity: 1,
-        rate: parseFloat(quickAmount) || 0,
-        amount: parseFloat(quickAmount) || 0,
-      },
-    ]);
+  const handleUpdateParticular = (
+    id: string,
+    field: 'description' | 'amount' | 'category',
+    value: any
+  ) => {
+    setLineItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        if (field === 'description') {
+          return { ...item, description: value };
+        }
+        if (field === 'category') {
+          return { ...item, category: value };
+        }
+        if (field === 'amount') {
+          const num = parseFloat(value) || 0;
+          return { ...item, rate: num, amount: num };
+        }
+        return item;
+      })
+    );
   };
 
-  const handleQuickAmountChange = (val: string) => {
-    setQuickAmount(val);
-    const num = parseFloat(val) || 0;
-    setLineItems((prev) => [
-      {
-        id: prev[0]?.id || generateId(),
-        description: quickParticulars,
-        unit: prev[0]?.unit || 'slab',
-        quantity: 1,
-        rate: num,
-        amount: num,
-      },
-    ]);
+  const handleAddParticular = () => {
+    const newItem: LineItem = {
+      id: generateId(),
+      description: '',
+      category: 'RCC Slab Work',
+      unit: 'slab',
+      quantity: 1,
+      rate: 0,
+      amount: 0,
+    };
+    setLineItems((prev) => [...prev, newItem]);
+    showToast('Added new particular row');
+  };
+
+  const handleRemoveParticular = (id: string) => {
+    if (lineItems.length <= 1) {
+      alert('At least one particular is required.');
+      return;
+    }
+    setLineItems((prev) => prev.filter((item) => item.id !== id));
+    showToast('Particular removed');
+  };
+
+  const handleSaveNewBillCategory = (catName: string, forItemId?: string) => {
+    const trimmed = catName.trim();
+    if (!trimmed) return;
+    const updated = saveCustomBillCategory(trimmed);
+    setCustomBillCategories(updated);
+    if (forItemId) {
+      handleUpdateParticular(forItemId, 'category', trimmed);
+    }
+    showToast(`Category "${trimmed}" added`);
   };
 
   // Calculations
@@ -927,66 +962,214 @@ function InvoiceBuilderContent() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-neutral-700 mb-1">
-                  Particulars / Work done *
-                </label>
-                <textarea
-                  rows={2}
-                  required
-                  value={quickParticulars}
-                  onChange={(e) => handleQuickParticularsChange(e.target.value)}
-                  placeholder="e.g. 12th and 13th Rcc slab work completed as per Drawing."
-                  className="w-full p-3 rounded-lg border border-neutral-300 text-xs font-mono text-neutral-900 leading-snug focus:outline-none focus:border-neutral-900"
-                />
-              </div>
+              {/* PARTICULARS / WORK DONE SECTION */}
+              <div className="space-y-3 pt-1">
+                <div className="flex items-center justify-between border-t border-neutral-100 pt-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-900">
+                      Particulars / Work done *
+                    </label>
+                    <span className="text-[11px] text-neutral-500">
+                      Write slab casting, RCC, masonry or add multiple work items
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddParticular}
+                    className="flex items-center gap-1.5 px-3 h-7 rounded-lg bg-neutral-900 hover:bg-black text-white text-[11px] font-medium shadow-xs transition"
+                  >
+                    <Plus size={13} />
+                    <span>+ Add Particular</span>
+                  </button>
+                </div>
 
-              <div>
-                <label className="block text-xs font-medium text-neutral-700 mb-1">
-                  Bill amount before tax (₹) *
-                </label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  required
-                  value={quickAmount}
-                  onChange={(e) => handleQuickAmountChange(e.target.value)}
-                  placeholder="1980000"
-                  className="w-full px-3 h-11 rounded-lg border border-neutral-300 font-mono font-medium text-neutral-900 text-base tabular-nums focus:outline-none focus:border-neutral-900"
-                />
+                {/* List of Particulars */}
+                <div className="space-y-3">
+                  {lineItems.map((item, index) => {
+                    const serialLetter = String.fromCharCode(65 + index); // A, B, C...
+                    return (
+                      <div
+                        key={item.id}
+                        className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50/70 hover:border-neutral-300 transition space-y-2.5"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-5 h-5 rounded bg-neutral-900 text-white flex items-center justify-center font-bold text-[11px]">
+                              {serialLetter}
+                            </span>
+                            <span className="text-xs font-semibold text-neutral-800">
+                              Particular #{index + 1}
+                            </span>
+                            {item.category && (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-neutral-200/80 text-neutral-800">
+                                {item.category}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {lineItems.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveParticular(item.id)}
+                                className="flex items-center gap-1 text-[11px] text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded transition"
+                                title="Remove this particular"
+                              >
+                                <Trash2 size={12} />
+                                <span>Remove</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Particulars Textarea */}
+                        <div>
+                          <label className="block text-[11px] font-medium text-neutral-700 mb-1">
+                            Work Description *
+                          </label>
+                          <textarea
+                            rows={2}
+                            required
+                            value={item.description}
+                            onChange={(e) => handleUpdateParticular(item.id, 'description', e.target.value)}
+                            placeholder="e.g. 12th and 13th Rcc slab work completed as per Drawing."
+                            className="w-full p-2.5 rounded-lg border border-neutral-300 text-xs font-mono text-neutral-900 leading-snug bg-white focus:outline-none focus:border-neutral-900"
+                          />
+                        </div>
+
+                        {/* Category & Amount Row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[11px] font-medium text-neutral-700">
+                                Work Category
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const custom = prompt('Enter new work category name (e.g. Shuttering, Centering, Plumbing):');
+                                  if (custom && custom.trim()) {
+                                    handleSaveNewBillCategory(custom.trim(), item.id);
+                                  }
+                                }}
+                                className="text-[10px] text-neutral-900 hover:underline font-medium"
+                              >
+                                + Add Category
+                              </button>
+                            </div>
+                            <select
+                              value={item.category || 'RCC Slab Work'}
+                              onChange={(e) => {
+                                if (e.target.value === '__add_new__') {
+                                  const custom = prompt('Enter new work category name (e.g. Shuttering, Centering, Plumbing):');
+                                  if (custom && custom.trim()) {
+                                    handleSaveNewBillCategory(custom.trim(), item.id);
+                                  }
+                                } else {
+                                  handleUpdateParticular(item.id, 'category', e.target.value);
+                                }
+                              }}
+                              className="w-full px-2.5 h-9 rounded-lg border border-neutral-300 text-xs text-neutral-900 bg-white focus:outline-none focus:border-neutral-900"
+                            >
+                              {allBillCategories.map((cat) => (
+                                <option key={cat} value={cat}>
+                                  {cat}
+                                </option>
+                              ))}
+                              <option value="__add_new__">+ Add custom category...</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-medium text-neutral-700 mb-1">
+                              Amount before tax (₹) *
+                            </label>
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              required
+                              value={item.amount || ''}
+                              onChange={(e) => handleUpdateParticular(item.id, 'amount', e.target.value)}
+                              placeholder="e.g. 1980000"
+                              className="w-full px-3 h-9 rounded-lg border border-neutral-300 font-mono font-medium text-neutral-900 text-sm tabular-nums bg-white focus:outline-none focus:border-neutral-900"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Add Another Particular Button */}
+                <button
+                  type="button"
+                  onClick={handleAddParticular}
+                  className="w-full py-2.5 rounded-lg border-2 border-dashed border-neutral-300 hover:border-neutral-400 text-xs font-medium text-neutral-700 hover:text-neutral-900 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-1.5"
+                >
+                  <Plus size={14} />
+                  <span>+ Add another particular / work item</span>
+                </button>
               </div>
 
               {/* Live Auto Calculations Breakdown */}
-              <div className="bg-neutral-50 rounded-lg p-3.5 border border-neutral-200 text-xs font-mono space-y-1.5">
-                <div className="flex justify-between text-neutral-600">
-                  <span>Particulars amount (A):</span>
-                  <span className="font-semibold tabular-nums">
-                    Rs. {parseFloat(quickAmount || '0').toLocaleString('en-IN')}.00
+              <div className="bg-neutral-50 rounded-xl p-3.5 border border-neutral-200 text-xs font-mono space-y-2">
+                <div className="flex items-center justify-between font-semibold text-neutral-800 border-b border-neutral-200/80 pb-2">
+                  <span>Particulars breakdown ({lineItems.length}):</span>
+                  <span>Amount (₹)</span>
+                </div>
+
+                {lineItems.map((item, idx) => {
+                  const letter = String.fromCharCode(65 + idx);
+                  const descPreview = item.description.trim() || `Particular #${idx + 1}`;
+                  return (
+                    <div key={item.id} className="flex justify-between items-start text-neutral-600 gap-2">
+                      <span className="truncate max-w-[260px] sm:max-w-[360px]">
+                        <strong className="text-neutral-900 mr-1.5">{letter}.</strong>
+                        {descPreview}
+                        {item.category && (
+                          <span className="ml-1.5 text-[10px] font-sans px-1.5 py-0.2 rounded bg-neutral-200/70 text-neutral-700">
+                            {item.category}
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-semibold tabular-nums whitespace-nowrap">
+                        Rs. {(item.amount || 0).toLocaleString('en-IN')}.00
+                      </span>
+                    </div>
+                  );
+                })}
+
+                <div className="flex justify-between text-neutral-900 font-bold pt-2 border-t border-neutral-200">
+                  <span>Total particulars before tax (A):</span>
+                  <span className="tabular-nums">
+                    Rs. {subtotal.toLocaleString('en-IN')}.00
                   </span>
                 </div>
+
                 {gstEnabled && (
                   <>
                     <div className="flex justify-between text-neutral-600">
-                      <span>Add: CGST 9% (B):</span>
+                      <span>Add: CGST {(gstRate / 2)}% (B):</span>
                       <span className="font-semibold tabular-nums">
                         Rs. {cgstAmount.toLocaleString('en-IN')}.00
                       </span>
                     </div>
                     <div className="flex justify-between text-neutral-600">
-                      <span>Add: SGST 9% (C):</span>
+                      <span>Add: SGST {(gstRate / 2)}% (C):</span>
                       <span className="font-semibold tabular-nums">
                         Rs. {sgstAmount.toLocaleString('en-IN')}.00
                       </span>
                     </div>
                   </>
                 )}
-                <div className="flex justify-between font-semibold text-neutral-900 pt-2 border-t border-neutral-200 text-xs">
+
+                <div className="flex justify-between font-black text-neutral-900 pt-2 border-t-2 border-neutral-300 text-sm">
                   <span>Total bill amount (round off):</span>
-                  <span className="tabular-nums">
+                  <span className="tabular-nums text-neutral-950">
                     Rs. {grandTotal.toLocaleString('en-IN')}.00
                   </span>
                 </div>
-                <p className="text-[11px] text-neutral-500 font-sans italic pt-1 leading-tight">
+                <p className="text-[11px] text-neutral-600 font-sans italic pt-1 leading-tight">
                   ({amountInWords})
                 </p>
               </div>

@@ -207,6 +207,11 @@ export default function InvoicePreview({
                   </td>
                   <td className="border-r-2 border-black py-2.5 px-3 font-normal align-top leading-snug">
                     {renderParticularsText(item.description || 'RCC slab work completed as per Drawing.')}
+                    {item.category && item.category !== 'General Civil Work' && (
+                      <span className="block text-[10.5px] text-gray-700 font-sans font-medium mt-0.5">
+                        [{item.category}]
+                      </span>
+                    )}
                     {item.quantity > 1 && (
                       <span className="block text-[11px] text-gray-600 mt-0.5">
                         ({item.quantity} {item.unit} @ Rs. {item.rate})
@@ -218,6 +223,19 @@ export default function InvoicePreview({
                   </td>
                 </tr>
               ))
+            )}
+
+            {/* Sub-total row if more than 1 particular line item */}
+            {lineItems.length > 1 && (
+              <tr className="border-b border-black font-bold text-[11.5px] bg-gray-50/50">
+                <td className="border-r-2 border-black text-center py-2">-</td>
+                <td className="border-r-2 border-black py-2 px-3 text-right uppercase tracking-wider font-bold">
+                  PARTICULARS SUB-TOTAL:
+                </td>
+                <td className="py-2 px-3 text-right font-bold whitespace-nowrap">
+                  {formatBillAmount(subtotal)}
+                </td>
+              </tr>
             )}
 
             {/* Discount Row (if applicable) */}

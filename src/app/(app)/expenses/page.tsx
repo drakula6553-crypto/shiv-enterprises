@@ -32,6 +32,9 @@ import {
   getCompanyProfile,
   updateExpenseReceipt,
   getTemplates,
+  getCustomExpenseCategories,
+  saveCustomExpenseCategory,
+  deleteCustomExpenseCategory,
 } from '@/lib/storage';
 import { formatINR, formatDateIN, todayISO, generateId } from '@/lib/utils';
 import { EXPENSE_CATEGORIES, PAYMENT_MODES } from '@/lib/types';
@@ -110,13 +113,18 @@ export default function ExpensesPage() {
   // Form Fields
   const [paidTo, setPaidTo] = useState('');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<ExpenseCategory>('Materials');
+  const [category, setCategory] = useState<string>('Materials');
   const [description, setDescription] = useState('');
   const [projectName, setProjectName] = useState('Harshail Iris Borivali');
   const [date, setDate] = useState(todayISO());
   const [paymentMode, setPaymentMode] = useState<Expense['paymentMode']>('upi');
   const [billNumber, setBillNumber] = useState('');
   const [notes, setNotes] = useState('');
+
+  // Custom Categories
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [showAddCategoryInput, setShowAddCategoryInput] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   // Receipt in Create/Edit Modal
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
@@ -143,6 +151,7 @@ export default function ExpensesPage() {
     // 1. Instant local render
     setExpenses(getExpenses());
     setCompanyProfile(getCompanyProfile());
+    setCustomCategories(getCustomExpenseCategories());
 
     // 2. Live Cloud fetch from Supabase
     if (forceCloud) {
@@ -176,6 +185,33 @@ export default function ExpensesPage() {
       };
     }
   }, []);
+
+  const allCategories = React.useMemo(() => {
+    const fromExpenses = expenses.map((e) => e.category).filter(Boolean);
+    return Array.from(new Set([...EXPENSE_CATEGORIES, ...customCategories, ...fromExpenses]));
+  }, [expenses, customCategories]);
+
+  const handleAddNewCategory = (catName: string) => {
+    const trimmed = catName.trim();
+    if (!trimmed) return;
+    const updated = saveCustomExpenseCategory(trimmed);
+    setCustomCategories(updated);
+    setCategory(trimmed);
+    setNewCategoryName('');
+    setShowAddCategoryInput(false);
+    showToast(`Category "${trimmed}" added and selected`);
+  };
+
+  const handleRemoveCustomCategory = (catName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm(`Remove custom category "${catName}"?`)) {
+      const updated = deleteCustomExpenseCategory(catName);
+      setCustomCategories(updated);
+      if (selectedCategory === catName) setSelectedCategory('all');
+      if (category === catName) setCategory('Materials');
+      showToast(`Category "${catName}" removed`);
+    }
+  };
 
   const knownProjects = React.useMemo(() => {
     const tplProjects = getTemplates().flatMap((t) => t.projects || (t.projectName ? [t.projectName] : []));
@@ -576,21 +612,37 @@ export default function ExpensesPage() {
             All categories
           </button>
 
-          {EXPENSE_CATEGORIES.map((cat) => {
+          {allCategories.map((cat) => {
             const count = expenses.filter((e) => e.category === cat).length;
+            const isCustom = !EXPENSE_CATEGORIES.includes(cat as any);
+            const isSelected = selectedCategory === cat;
             return (
-              <button
+              <div
                 key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 h-7 rounded-lg text-[11px] font-medium whitespace-nowrap nav-transition ${
-                  selectedCategory === cat
-                    ? 'bg-neutral-800 text-white'
+                className={`inline-flex items-center rounded-lg text-[11px] font-medium whitespace-nowrap nav-transition border ${
+                  isSelected
+                    ? 'bg-neutral-800 text-white border-neutral-800'
                     : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
                 }`}
               >
-                {cat} {count > 0 ? `(${count})` : ''}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className="px-3 h-7 flex items-center"
+                >
+                  {cat} {count > 0 ? `(${count})` : ''}
+                </button>
+                {isCustom && count === 0 && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleRemoveCustomCategory(cat, e)}
+                    className="pr-2 text-neutral-400 hover:text-red-500 font-bold"
+                    title={`Delete custom category "${cat}"`}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             );
           })}
         </div>
@@ -836,19 +888,77 @@ export default function ExpensesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-700 mb-1">
-                  Expense category *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-medium text-neutral-700">
+                    Expense category *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCategoryInput(!showAddCategoryInput)}
+                    className="text-[11px] font-semibold text-neutral-900 hover:text-black flex items-center gap-1 transition"
+                  >
+                    <Plus size={12} />
+                    <span>Add category</span>
+                  </button>
+                </div>
+
+                {showAddCategoryInput && (
+                  <div className="mb-2 p-2.5 rounded-lg bg-neutral-50 border border-neutral-200 space-y-2">
+                    <span className="text-[11px] font-medium text-neutral-700 block">
+                      Enter new expense category name:
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        placeholder="e.g. Scaffolding, Steel, Centering, Marble..."
+                        className="flex-1 px-2.5 h-8 rounded border border-neutral-300 text-xs text-neutral-900 bg-white focus:outline-none focus:border-neutral-900"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddNewCategory(newCategoryName);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddNewCategory(newCategoryName)}
+                        className="px-3 h-8 text-xs font-semibold rounded bg-neutral-900 hover:bg-black text-white transition"
+                      >
+                        Add
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowAddCategoryInput(false);
+                          setNewCategoryName('');
+                        }}
+                        className="px-2.5 h-8 text-xs font-medium rounded border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-100 transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as any)}
+                  onChange={(e) => {
+                    if (e.target.value === '__add_new__') {
+                      setShowAddCategoryInput(true);
+                    } else {
+                      setCategory(e.target.value);
+                    }
+                  }}
                   className="w-full px-3 h-10 rounded-lg border border-neutral-300 text-xs text-neutral-900 bg-white focus:outline-none focus:border-neutral-900"
                 >
-                  {EXPENSE_CATEGORIES.map((cat) => (
+                  {allCategories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
                   ))}
+                  <option value="__add_new__">+ Add new category...</option>
                 </select>
               </div>
 

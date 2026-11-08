@@ -349,6 +349,60 @@ export function updateExpenseReceipt(
   return exp;
 }
 
+// ─── Custom Categories Management ───────────────────────────
+
+export function getCustomExpenseCategories(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('se_custom_expense_categories');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomExpenseCategory(categoryName: string): string[] {
+  if (typeof window === 'undefined') return [];
+  const trimmed = categoryName.trim();
+  if (!trimmed) return getCustomExpenseCategories();
+  const current = getCustomExpenseCategories();
+  if (!current.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
+    current.push(trimmed);
+    localStorage.setItem('se_custom_expense_categories', JSON.stringify(current));
+  }
+  return current;
+}
+
+export function deleteCustomExpenseCategory(categoryName: string): string[] {
+  if (typeof window === 'undefined') return [];
+  const trimmed = categoryName.trim().toLowerCase();
+  const current = getCustomExpenseCategories().filter((c) => c.toLowerCase() !== trimmed);
+  localStorage.setItem('se_custom_expense_categories', JSON.stringify(current));
+  return current;
+}
+
+export function getCustomBillCategories(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('se_custom_bill_categories');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomBillCategory(categoryName: string): string[] {
+  if (typeof window === 'undefined') return [];
+  const trimmed = categoryName.trim();
+  if (!trimmed) return getCustomBillCategories();
+  const current = getCustomBillCategories();
+  if (!current.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
+    current.push(trimmed);
+    localStorage.setItem('se_custom_bill_categories', JSON.stringify(current));
+  }
+  return current;
+}
+
 // ─── Seed & Reset ─────────────────────────────────────────────
 
 export function seedSampleData(): void {
