@@ -45,8 +45,9 @@ export default function Sidebar() {
     <aside className="hidden md:flex flex-col w-64 bg-[#0B0F17] text-neutral-200 fixed top-0 left-0 h-full z-40 border-r border-white/[0.07] select-none">
       {/* Brand Header */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-white/[0.07]">
-        <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-xs tracking-wider shadow-[0_2px_8px_rgba(245,158,11,0.15)]">
-          SE
+        <div className="w-8 h-8 rounded-lg bg-white/[0.08] border border-white/[0.12] flex items-center justify-center overflow-hidden p-1 shadow-sm">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Shiv Enterprises 3D Logo" className="w-full h-full object-contain" />
         </div>
         <div>
           <h1 className="text-sm font-semibold tracking-wide text-white leading-tight">

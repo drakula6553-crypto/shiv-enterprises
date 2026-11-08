@@ -55,8 +55,9 @@ export default function LoginPage() {
       {/* Top Header without any bypass link */}
       <header className="px-6 py-5 flex items-center justify-between border-b border-white/[0.06] backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white font-bold text-sm shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
-            SE
+          <div className="w-9 h-9 rounded-lg bg-white/[0.08] border border-white/[0.12] flex items-center justify-center overflow-hidden p-1 shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Shiv Enterprises 3D Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <span className="font-semibold text-sm tracking-wide text-white block">
