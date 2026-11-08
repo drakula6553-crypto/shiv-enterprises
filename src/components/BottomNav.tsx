@@ -2,12 +2,13 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, FilePlus, FileText, ShoppingBag, Users } from 'lucide-react';
+import { LayoutDashboard, FilePlus, FileText, ShoppingBag, Users, Layers } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
   { href: '/new-bill', label: 'New bill', icon: FilePlus },
   { href: '/bills', label: 'Bills', icon: FileText },
+  { href: '/project-tracking', label: 'RA Ledger', icon: Layers },
   { href: '/expenses', label: 'Purchases', icon: ShoppingBag },
   { href: '/contractors', label: 'Contractors', icon: Users },
 ];

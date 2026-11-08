@@ -160,6 +160,34 @@ function InvoiceBuilderContent() {
     } else {
       const nextNum = nextInvoiceNumber(existingInvoices, 'RS 09');
       setInvoiceNumber(nextNum);
+
+      // Check for milestone draft from Project RA Tracking
+      if (typeof window !== 'undefined') {
+        const draftJson = sessionStorage.getItem('shiv_milestone_bill_draft');
+        if (draftJson) {
+          try {
+            const draft = JSON.parse(draftJson);
+            sessionStorage.removeItem('shiv_milestone_bill_draft');
+            if (draft.clientName) setClientName(draft.clientName);
+            if (draft.projectName) setProjectName(draft.projectName);
+            if (draft.particulars && draft.amountBeforeTax) {
+              setLineItems([
+                {
+                  id: generateId(),
+                  description: draft.particulars,
+                  category: 'RCC Slab Work',
+                  unit: 'item',
+                  quantity: 1,
+                  rate: draft.amountBeforeTax,
+                  amount: draft.amountBeforeTax,
+                },
+              ]);
+            }
+          } catch (e) {
+            console.error('Failed to parse milestone bill draft:', e);
+          }
+        }
+      }
     }
   }, [editId]);
 

@@ -15,6 +15,7 @@ import {
   User,
   ShieldCheck,
   Crown,
+  Layers,
 } from 'lucide-react';
 import { getCurrentUser, signOut, isUserAdmin, AuthUser } from '@/lib/auth';
 
@@ -22,6 +23,7 @@ const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
   { href: '/new-bill', label: 'New bill', icon: FilePlus },
   { href: '/bills', label: 'Bills & invoices', icon: FileText },
+  { href: '/project-tracking', label: 'Project RA & Milestones', icon: Layers },
   { href: '/expenses', label: 'Purchases & expenses', icon: ShoppingBag },
   { href: '/contractors', label: 'Contractors', icon: Users },
 ];
