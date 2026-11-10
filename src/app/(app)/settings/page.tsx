@@ -532,20 +532,20 @@ export default function SettingsPage() {
         <div className="pt-2">
           <button
             type="submit"
-            className="w-full sm:w-auto bg-[#0B0F17] hover:bg-[#151D2A] active:bg-[#070A0F] text-white font-medium h-10 px-6 rounded-lg text-xs nav-transition action-press flex items-center justify-center gap-2 border border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+            className="w-full sm:w-auto bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white font-medium h-11 px-6 rounded-xl text-xs nav-transition action-press flex items-center justify-center gap-2 shadow-xs"
           >
-            <Check size={16} className="text-amber-400" />
+            <Check size={16} className="text-white" />
             <span>Save company profile</span>
           </button>
         </div>
       </form>
 
       {/* Supabase Cloud Database & Sync */}
-      <div className="mt-8 bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 space-y-4">
-        <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
+      <div className="mt-8 bg-white rounded-xl p-4 sm:p-5 border border-slate-200 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <div className="flex items-center gap-2">
-            <Cloud size={16} className="text-neutral-500" />
-            <h2 className="font-semibold text-neutral-900 text-xs">
+            <Cloud size={16} className="text-[#0284C7]" />
+            <h2 className="font-semibold text-slate-900 text-xs">
               Supabase Cloud Database & Multi-Device Sync
             </h2>
           </div>
@@ -553,12 +553,12 @@ export default function SettingsPage() {
             className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium font-mono ${
               isSupabaseConfigured
                 ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
-                : 'bg-amber-500/10 text-amber-700 border border-amber-500/20'
+                : 'bg-slate-100 text-slate-700 border border-slate-200'
             }`}
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                isSupabaseConfigured ? 'bg-emerald-600' : 'bg-amber-500'
+                isSupabaseConfigured ? 'bg-emerald-600' : 'bg-slate-400'
               }`}
             />
             <span>{isSupabaseConfigured ? 'Connected' : 'Offline Storage Active'}</span>
@@ -581,16 +581,16 @@ export default function SettingsPage() {
                 type="button"
                 onClick={handlePushSupabase}
                 disabled={syncLoading}
-                className="flex items-center gap-2 px-3.5 h-9 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-medium nav-transition action-press"
+                className="flex items-center gap-2 px-4 h-10 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-medium nav-transition action-press shadow-xs"
               >
-                <CloudUpload size={14} className="text-amber-400" />
+                <CloudUpload size={14} className="text-white" />
                 <span>{syncLoading ? 'Syncing...' : 'Push Local Data to Cloud'}</span>
               </button>
               <button
                 type="button"
                 onClick={handlePullSupabase}
                 disabled={syncLoading}
-                className="flex items-center gap-2 px-3.5 h-9 bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 rounded-lg text-xs font-medium nav-transition action-press"
+                className="flex items-center gap-2 px-4 h-10 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl text-xs font-medium nav-transition action-press shadow-xs"
               >
                 <CloudDownload size={14} />
                 <span>Pull Cloud Data to Device</span>
@@ -599,14 +599,14 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs text-neutral-600 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               Currently running in high-speed local offline mode. To sync bills, payments, and expenses between your mobile phone and laptop, connect your free Supabase project.
             </p>
-            <div className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 text-xs space-y-1.5 font-mono">
-              <p className="text-neutral-500 font-sans text-[11px] font-medium uppercase tracking-wider">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5 font-mono">
+              <p className="text-slate-500 font-sans text-[11px] font-medium uppercase tracking-wider">
                 Configuration instructions:
               </p>
-              <p className="text-neutral-700">1. Create a free project at <span className="text-amber-700 underline">supabase.com</span></p>
+              <p className="text-slate-700">1. Create a free project at <span className="text-[#0284C7] underline">supabase.com</span></p>
               <p className="text-neutral-700">2. Run the provided <span className="text-neutral-900 font-bold">supabase-schema.sql</span> script in Supabase SQL Editor</p>
               <p className="text-neutral-700">3. Set <span className="text-neutral-900 font-bold">NEXT_PUBLIC_SUPABASE_URL</span> and <span className="text-neutral-900 font-bold">NEXT_PUBLIC_SUPABASE_ANON_KEY</span> in <span className="text-neutral-900 font-bold">.env.local</span></p>
             </div>

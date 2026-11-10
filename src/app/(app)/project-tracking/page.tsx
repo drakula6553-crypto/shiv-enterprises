@@ -252,21 +252,21 @@ export default function ProjectTrackingPage() {
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         {/* Top Header Card */}
-        <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-600 mb-1">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#0284C7] mb-1">
                 <Building2 size={14} />
                 <span>Civil Contractor Running Account (RA) Ledger</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-neutral-900 tracking-tight flex items-center gap-3">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
                 {project.projectName}
-                <span className="text-xs font-bold uppercase tracking-wide bg-neutral-100 text-neutral-700 px-2.5 py-1 rounded-full border border-neutral-300">
+                <span className="text-xs font-bold uppercase tracking-wide bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full border border-slate-300">
                   {project.builderName}
                 </span>
               </h1>
-              <p className="text-xs text-neutral-500 mt-1">
-                Area: <strong className="text-neutral-800">{project.billingAreaSqFt.toLocaleString('en-IN')} sq.ft.</strong> • Turnkey Rate: <strong className="text-neutral-800">₹{project.labourRate + project.materialRate}/sq.ft.</strong> (₹{project.labourRate} Labour + ₹{project.materialRate} Material) • Contract Value: <strong className="text-neutral-900">₹{formatINR(calc.totalTurnkeyContract)}</strong>
+              <p className="text-xs text-slate-500 mt-1">
+                Area: <strong className="text-slate-800">{project.billingAreaSqFt.toLocaleString('en-IN')} sq.ft.</strong> • Turnkey Rate: <strong className="text-slate-800">₹{project.labourRate + project.materialRate}/sq.ft.</strong> (₹{project.labourRate} Labour + ₹{project.materialRate} Material) • Contract Value: <strong className="text-slate-900">₹{formatINR(calc.totalTurnkeyContract)}</strong>
               </p>
             </div>
 
@@ -284,7 +284,7 @@ export default function ProjectTrackingPage() {
               <button
                 onClick={handleExportPDF}
                 disabled={isGeneratingPdf}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#0F2A43] hover:bg-[#1A3D5E] text-white shadow-sm transition-all active:scale-95 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white shadow-sm transition-all active:scale-95 disabled:opacity-60"
                 title="Download 2-page official contractor letterhead PDF"
               >
                 <Download size={16} />
@@ -293,7 +293,7 @@ export default function ProjectTrackingPage() {
 
               <button
                 onClick={handleShareWhatsApp}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300 transition-all active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-all active:scale-95"
                 title="Share executive summary on WhatsApp"
               >
                 <Share2 size={15} />
@@ -303,48 +303,48 @@ export default function ProjectTrackingPage() {
           </div>
 
           {/* Key Metrics Banner */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6 pt-6 border-t border-neutral-100">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6 pt-6 border-t border-slate-100">
             {/* Physical Progress */}
-            <div className="bg-neutral-50 rounded-xl p-3 border border-neutral-200/70">
-              <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-500 mb-1">
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/70">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1">
                 <span>Physical Progress</span>
-                <Percent size={12} className="text-amber-600" />
+                <Percent size={12} className="text-[#0284C7]" />
               </div>
-              <div className="text-xl font-black text-neutral-900 font-mono">
+              <div className="text-xl font-black text-slate-900 font-mono">
                 {calc.totalCompletedPercentage}%
               </div>
-              <div className="w-full bg-neutral-200 rounded-full h-1.5 mt-2 overflow-hidden">
+              <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden">
                 <div
-                  className="bg-amber-600 h-1.5 rounded-full transition-all duration-500"
+                  className="bg-[#0284C7] h-1.5 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, calc.totalCompletedPercentage)}%` }}
                 />
               </div>
             </div>
 
             {/* Total Work Done Value */}
-            <div className="bg-neutral-50 rounded-xl p-3 border border-neutral-200/70">
-              <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-500 mb-1">
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/70">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1">
                 <span>Gross Work Done</span>
-                <HardHat size={12} className="text-blue-600" />
+                <HardHat size={12} className="text-slate-700" />
               </div>
-              <div className="text-xl font-black text-neutral-900 font-mono">
+              <div className="text-xl font-black text-slate-900 font-mono">
                 ₹{formatINR(calc.totalLabourCompletedEarned + calc.totalMaterialCompletedEarned)}
               </div>
-              <div className="text-[10px] text-neutral-500 mt-1 truncate">
+              <div className="text-[10px] text-slate-500 mt-1 truncate">
                 L: ₹{formatINR(calc.totalLabourCompletedEarned)} • M: ₹{formatINR(calc.totalMaterialCompletedEarned)}
               </div>
             </div>
 
             {/* 1@ Labour Due */}
-            <div className="bg-amber-50/60 rounded-xl p-3 border border-amber-200/70">
-              <div className="flex items-center justify-between text-[11px] font-semibold text-amber-800 mb-1">
+            <div className="bg-sky-50/70 rounded-xl p-3 border border-sky-200/80">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-sky-800 mb-1">
                 <span>1@ Labour Due</span>
                 <IndianRupee size={12} />
               </div>
-              <div className="text-xl font-black text-amber-950 font-mono">
+              <div className="text-xl font-black text-sky-950 font-mono">
                 ₹{calc.labourDueAmount.toLocaleString('en-IN')}
               </div>
-              <div className="text-[10px] text-amber-700 mt-1">
+              <div className="text-[10px] text-sky-700 mt-1">
                 Less RN 08: ₹{formatINR(calc.labourBilled)}
               </div>
             </div>
@@ -380,23 +380,23 @@ export default function ProjectTrackingPage() {
 
           {/* Quick Bill Trigger Alert if Pending Stages Selected */}
           {selectedStageIds.length > 0 && (
-            <div className="mt-4 bg-amber-50 border border-amber-300 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+            <div className="mt-4 bg-sky-50 border border-sky-300 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
               <div className="flex items-center gap-2.5">
-                <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                <Sparkles className="w-5 h-5 text-[#0284C7] flex-shrink-0" />
                 <div>
-                  <div className="text-xs font-bold text-amber-900">
+                  <div className="text-xs font-bold text-sky-900">
                     {selectedStageIds.length} Milestone Stage{selectedStageIds.length > 1 ? 's' : ''} Selected
                   </div>
-                  <div className="text-[11px] text-amber-800">
-                    Ready to generate contractor tax invoice (e.g. 12th & 13th slab = ₹19,80,000 + 18% GST).
+                  <div className="text-[11px] text-sky-800">
+                    Ready to generate contractor tax invoice (e.g. 12th &amp; 13th slab = ₹19,80,000 + 18% GST).
                   </div>
                 </div>
               </div>
               <button
                 onClick={handleGenerateBillFromSelected}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95 whitespace-nowrap"
               >
-                <span>⚡ Generate Tax Invoice</span>
+                <span>Generate Tax Invoice</span>
                 <ChevronRight size={14} />
               </button>
             </div>
@@ -404,18 +404,18 @@ export default function ProjectTrackingPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-neutral-200 mb-6 overflow-x-auto">
+        <div className="flex items-center gap-2 border-b border-slate-200 mb-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('milestones')}
             className={`pb-3 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-all ${
               activeTab === 'milestones'
-                ? 'border-amber-600 text-amber-600'
-                : 'border-transparent text-neutral-500 hover:text-neutral-800'
+                ? 'border-[#0284C7] text-[#0284C7]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <Layers size={14} />
             <span>1. Milestones Schedule (26 Stages)</span>
-            <span className="text-[10px] bg-neutral-100 px-1.5 py-0.5 rounded-full font-mono">
+            <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full font-mono">
               {calc.billedStagesCount + calc.pendingSubmissionStagesCount}/26
             </span>
           </button>
@@ -424,8 +424,8 @@ export default function ProjectTrackingPage() {
             onClick={() => setActiveTab('reconciliation')}
             className={`pb-3 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-all ${
               activeTab === 'reconciliation'
-                ? 'border-amber-600 text-amber-600'
-                : 'border-transparent text-neutral-500 hover:text-neutral-800'
+                ? 'border-[#0284C7] text-[#0284C7]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <IndianRupee size={14} />
@@ -439,13 +439,13 @@ export default function ProjectTrackingPage() {
             onClick={() => setActiveTab('rmc')}
             className={`pb-3 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-all ${
               activeTab === 'rmc'
-                ? 'border-amber-600 text-amber-600'
-                : 'border-transparent text-neutral-500 hover:text-neutral-800'
+                ? 'border-[#0284C7] text-[#0284C7]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <Truck size={14} />
             <span>3. RMC Deductions ({project.rmcDeductions.length})</span>
-            <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-mono">
+            <span className="text-[10px] bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded-full font-mono">
               -₹{formatINR(calc.totalRmcDeductions)}
             </span>
           </button>
@@ -454,8 +454,8 @@ export default function ProjectTrackingPage() {
             onClick={() => setActiveTab('preview')}
             className={`pb-3 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-all ${
               activeTab === 'preview'
-                ? 'border-amber-600 text-amber-600'
-                : 'border-transparent text-neutral-500 hover:text-neutral-800'
+                ? 'border-[#0284C7] text-[#0284C7]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <Printer size={14} />
@@ -509,12 +509,12 @@ export default function ProjectTrackingPage() {
                         key={stage.id}
                         className={`transition-colors ${
                           isSelected
-                            ? 'bg-amber-50/70'
+                            ? 'bg-sky-50/70'
                             : isPendingSub
                             ? 'bg-emerald-50/40'
                             : isBilled
-                            ? 'bg-neutral-50/50'
-                            : 'hover:bg-neutral-50/80'
+                            ? 'bg-slate-50/50'
+                            : 'hover:bg-slate-50/80'
                         }`}
                       >
                         {/* Checkbox */}
@@ -523,7 +523,7 @@ export default function ProjectTrackingPage() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleSelectStage(stage.id)}
-                            className="rounded border-neutral-300 text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer"
+                            className="rounded border-slate-300 text-[#0284C7] focus:ring-[#0284C7] w-4 h-4 cursor-pointer"
                           />
                         </td>
 
@@ -700,26 +700,26 @@ export default function ProjectTrackingPage() {
             {/* Reconciliation Cards (Labour Due & Material Due) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 1@ Labour Account Due Card */}
-              <div className="bg-white rounded-2xl border border-amber-200/80 shadow-sm p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-bl-full pointer-events-none" />
-                <h3 className="text-sm font-black text-amber-950 uppercase tracking-wider mb-4 flex items-center justify-between">
+              <div className="bg-white rounded-2xl border border-sky-200/80 shadow-sm p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-bl-full pointer-events-none" />
+                <h3 className="text-sm font-black text-sky-950 uppercase tracking-wider mb-4 flex items-center justify-between">
                   <span>1@ Labour Account Due</span>
-                  <span className="text-xs font-semibold text-neutral-500">Rate: ₹600/sq.ft.</span>
+                  <span className="text-xs font-semibold text-slate-500">Rate: ₹600/sq.ft.</span>
                 </h3>
 
                 <div className="space-y-3 text-xs">
-                  <div className="flex justify-between items-center py-1.5 border-b border-neutral-100">
-                    <span className="text-neutral-600">Total Labour Work Done ({calc.totalCompletedPercentage}%):</span>
+                  <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+                    <span className="text-slate-600">Total Labour Work Done ({calc.totalCompletedPercentage}%):</span>
                     <strong className="font-mono text-sm">₹{calc.totalLabourCompletedEarned.toLocaleString('en-IN')}</strong>
                   </div>
 
-                  <div className="flex justify-between items-center py-1.5 border-b border-neutral-100 text-neutral-700">
+                  <div className="flex justify-between items-center py-1.5 border-b border-slate-100 text-slate-700">
                     <div>
-                      <span className="font-medium text-red-700">Less: Labour Bills Submitted:</span>
-                      <div className="text-[10px] text-neutral-400">Bills up to RN 08</div>
+                      <span className="font-medium text-rose-700">Less: Labour Bills Submitted:</span>
+                      <div className="text-[10px] text-slate-400">Bills up to RN 08</div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="text-red-700 font-mono font-bold">-₹</span>
+                      <span className="text-rose-700 font-mono font-bold">-₹</span>
                       <input
                         type="number"
                         value={project.labourBilledAmount}
@@ -729,21 +729,21 @@ export default function ProjectTrackingPage() {
                             labourBilledAmount: parseFloat(e.target.value) || 0,
                           })
                         }
-                        className="w-36 text-right font-mono font-bold text-red-700 border border-neutral-300 rounded px-2 py-1 text-xs focus:ring-amber-500"
+                        className="w-36 text-right font-mono font-bold text-rose-700 border border-slate-300 rounded px-2 py-1 text-xs focus:ring-[#0284C7]"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-amber-100/70 border border-amber-300 rounded-xl p-4 flex justify-between items-center mt-4">
+                  <div className="bg-sky-50 border border-sky-300 rounded-xl p-4 flex justify-between items-center mt-4">
                     <div>
-                      <div className="text-xs font-black uppercase text-amber-950">
+                      <div className="text-xs font-black uppercase text-sky-950">
                         1@ Labour Ac. Due Amount
                       </div>
-                      <div className="text-[10px] text-amber-800">
+                      <div className="text-[10px] text-sky-800">
                         Ready to demand from Harshmaan Spaces
                       </div>
                     </div>
-                    <div className="text-2xl font-black font-mono text-amber-950">
+                    <div className="text-2xl font-black font-mono text-sky-950">
                       ₹{calc.labourDueAmount.toLocaleString('en-IN')}
                     </div>
                   </div>
@@ -974,7 +974,7 @@ export default function ProjectTrackingPage() {
                 <button
                   onClick={handleExportPDF}
                   disabled={isGeneratingPdf}
-                  className="px-4 py-2 bg-[#0F2A43] hover:bg-[#1A3D5E] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                  className="px-4 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs"
                 >
                   <Download size={15} />
                   <span>{isGeneratingPdf ? 'Generating PDF...' : 'Download PDF'}</span>

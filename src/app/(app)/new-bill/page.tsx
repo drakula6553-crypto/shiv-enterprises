@@ -795,23 +795,23 @@ function InvoiceBuilderContent() {
         </div>
 
         {/* ─── PROJECT / SITE SUB-DIVISION SELECTOR ─── */}
-        <div className="mt-4 pt-4 border-t border-neutral-100">
+        <div className="mt-4 pt-4 border-t border-slate-200/80">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
             <div>
               <div className="flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-amber-600" />
-                <span className="text-xs font-semibold text-neutral-900">
+                <Building2 className="w-4 h-4 text-[#0284C7]" />
+                <span className="text-xs font-semibold text-slate-900">
                   Select Project / Site Sub-Division
                 </span>
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/60">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200/80">
                   {selectedTemplateId === 'custom'
                     ? clientName || 'Custom Client'
                     : activeTemplate?.clientName || 'Builder'}
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-500 mt-0.5">
+              <p className="text-[11px] text-slate-500 mt-0.5">
                 Choose the project/site this bill is generated for (printed as{' '}
-                <strong className="font-mono text-neutral-700">&quot;Ref: [Project]&quot;</strong> on official letterhead)
+                <strong className="font-mono text-slate-700">&quot;Ref: [Project]&quot;</strong> on official letterhead)
               </p>
             </div>
 
@@ -819,7 +819,7 @@ function InvoiceBuilderContent() {
               <button
                 type="button"
                 onClick={() => setShowAddProjectInput(true)}
-                className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/80 px-2.5 py-1.5 rounded-lg border border-amber-200/80 transition self-start sm:self-auto"
+                className="inline-flex items-center gap-1 text-xs font-medium text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100/80 px-2.5 py-1.5 rounded-lg border border-sky-200 transition self-start sm:self-auto"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>+ Add Project / Site</span>
@@ -829,8 +829,8 @@ function InvoiceBuilderContent() {
 
           {/* Add New Project Input */}
           {showAddProjectInput && (
-            <div className="mb-3.5 p-3 rounded-lg bg-amber-50/70 border border-amber-200 transition">
-              <span className="text-[11px] font-semibold text-neutral-800 block mb-1.5">
+            <div className="mb-3.5 p-3 rounded-xl bg-sky-50/70 border border-sky-200 transition">
+              <span className="text-[11px] font-semibold text-slate-800 block mb-1.5">
                 Add new site / project sub-division for{' '}
                 {selectedTemplateId === 'custom'
                   ? clientName || 'this bill'
@@ -838,13 +838,13 @@ function InvoiceBuilderContent() {
               </span>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="relative flex-1">
-                  <MapPin className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={newProjectInput}
                     onChange={(e) => setNewProjectInput(e.target.value)}
                     placeholder="e.g. Harshail Heights Dahisar East or Tower C Wing 2"
-                    className="w-full text-xs pl-8 pr-3 h-8 rounded-md border border-neutral-300 bg-white text-neutral-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full text-xs pl-8 pr-3 h-8 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#0284C7] focus:border-[#0284C7]"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -868,7 +868,7 @@ function InvoiceBuilderContent() {
                         setShowAddProjectInput(false);
                       }
                     }}
-                    className="px-3 h-8 text-xs font-medium rounded-md bg-neutral-900 hover:bg-black text-white transition flex items-center gap-1"
+                    className="px-3 h-8 text-xs font-medium rounded-lg bg-[#0284C7] hover:bg-[#0369A1] text-white transition flex items-center gap-1 shadow-xs"
                   >
                     <Check className="w-3 h-3" />
                     <span>Add &amp; Select</span>
@@ -879,7 +879,7 @@ function InvoiceBuilderContent() {
                       setShowAddProjectInput(false);
                       setNewProjectInput('');
                     }}
-                    className="px-2.5 h-8 text-xs font-medium rounded-md bg-white hover:bg-neutral-50 text-neutral-600 border border-neutral-300 transition"
+                    className="px-2.5 h-8 text-xs font-medium rounded-lg bg-white hover:bg-slate-50 text-slate-600 border border-slate-300 transition"
                   >
                     Cancel
                   </button>
@@ -897,19 +897,19 @@ function InvoiceBuilderContent() {
                   key={proj}
                   className={`group inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-lg border text-xs transition cursor-pointer ${
                     isSelected
-                      ? 'bg-neutral-900 border-neutral-900 text-white font-medium shadow-sm'
-                      : 'bg-white hover:bg-neutral-50 border-neutral-200 hover:border-neutral-300 text-neutral-700'
+                      ? 'bg-[#0A192F] border-[#0A192F] text-white font-medium shadow-xs'
+                      : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-700'
                   }`}
                   onClick={() => handleSelectProject(proj)}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      isSelected ? 'bg-amber-400' : 'bg-neutral-300 group-hover:bg-neutral-400'
+                      isSelected ? 'bg-[#38BDF8]' : 'bg-slate-300 group-hover:bg-slate-400'
                     }`}
                   />
                   <span className="truncate max-w-[240px] sm:max-w-[340px]">{proj}</span>
                   {isSelected ? (
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-amber-300">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#0284C7] text-white">
                       Active Ref
                     </span>
                   ) : null}
@@ -922,8 +922,8 @@ function InvoiceBuilderContent() {
                       onClick={(e) => handleRemoveProject(proj, e)}
                       className={`ml-1 p-0.5 rounded transition ${
                         isSelected
-                          ? 'text-neutral-400 hover:text-white hover:bg-neutral-800'
-                          : 'text-neutral-300 hover:text-red-600 hover:bg-red-50'
+                          ? 'text-slate-400 hover:text-white hover:bg-slate-800'
+                          : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
                       }`}
                     >
                       <X className="w-3 h-3" />
@@ -1004,7 +1004,7 @@ function InvoiceBuilderContent() {
                   <button
                     type="button"
                     onClick={handleAddParticular}
-                    className="flex items-center gap-1.5 px-3 h-7 rounded-lg bg-neutral-900 hover:bg-black text-white text-[11px] font-medium shadow-xs transition"
+                    className="flex items-center gap-1.5 px-3 h-7 rounded-lg bg-[#0A192F] hover:bg-[#0284C7] text-white text-[11px] font-medium shadow-xs transition"
                   >
                     <Plus size={13} />
                     <span>+ Add Particular</span>
@@ -1018,18 +1018,18 @@ function InvoiceBuilderContent() {
                     return (
                       <div
                         key={item.id}
-                        className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50/70 hover:border-neutral-300 transition space-y-2.5"
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:border-slate-300 transition space-y-2.5"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded bg-neutral-900 text-white flex items-center justify-center font-bold text-[11px]">
+                            <span className="w-5 h-5 rounded bg-[#0A192F] text-white flex items-center justify-center font-bold text-[11px]">
                               {serialLetter}
                             </span>
-                            <span className="text-xs font-semibold text-neutral-800">
+                            <span className="text-xs font-semibold text-slate-800">
                               Particular #{index + 1}
                             </span>
                             {item.category && (
-                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-neutral-200/80 text-neutral-800">
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-800">
                                 {item.category}
                               </span>
                             )}
@@ -1263,7 +1263,7 @@ function InvoiceBuilderContent() {
                               <button
                                 type="button"
                                 onClick={() => handleAddNewProject(projectName)}
-                                className="text-[10px] text-amber-700 hover:text-amber-800 font-medium flex items-center gap-0.5"
+                                className="text-[10px] text-sky-700 hover:text-sky-800 font-medium flex items-center gap-0.5"
                               >
                                 <Plus className="w-2.5 h-2.5" />
                                 Save as preset
@@ -1386,7 +1386,7 @@ function InvoiceBuilderContent() {
                         <button
                           type="button"
                           onClick={() => handleAddNewProject(projectName)}
-                          className="text-[10px] text-amber-700 hover:text-amber-800 font-medium flex items-center gap-0.5"
+                          className="text-[10px] text-sky-700 hover:text-sky-800 font-medium flex items-center gap-0.5"
                         >
                           <Plus className="w-2.5 h-2.5" />
                           Save as preset
@@ -1538,16 +1538,16 @@ function InvoiceBuilderContent() {
             <button
               type="button"
               onClick={handleSaveInvoice}
-              className="flex items-center justify-center gap-1.5 bg-[#0B0F17] hover:bg-[#151D2A] active:bg-[#070A0F] text-white font-medium h-10 px-4 rounded-lg text-xs nav-transition action-press border border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+              className="flex items-center justify-center gap-2 bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white font-medium h-11 px-4 rounded-xl text-xs nav-transition action-press shadow-xs"
             >
-              <Save size={15} className="text-amber-400" /> Save bill
+              <Save size={15} /> Save bill
             </button>
 
             <button
               type="button"
               onClick={handleDownloadPDF}
               disabled={isGeneratingPdf}
-              className="flex items-center justify-center gap-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-medium h-10 px-4 rounded-lg text-xs nav-transition action-press"
+              className="flex items-center justify-center gap-2 bg-[#0A192F] hover:bg-[#15233E] text-white font-medium h-11 px-4 rounded-xl text-xs nav-transition action-press shadow-xs"
             >
               <Download size={15} />
               {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
@@ -1610,22 +1610,22 @@ function InvoiceBuilderContent() {
               </div>
             </div>
 
-            <div className="p-3 bg-white border-t border-neutral-200 grid grid-cols-2 gap-2">
+            <div className="p-3 bg-white border-t border-slate-200 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setShowMobilePreview(false);
                   handleSaveInvoice();
                 }}
-                className="h-10 bg-[#0B0F17] hover:bg-[#151D2A] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 nav-transition action-press border border-white/[0.08]"
+                className="h-11 bg-[#0284C7] hover:bg-[#0369A1] text-white font-medium rounded-xl text-xs flex items-center justify-center gap-1.5 nav-transition action-press shadow-xs"
               >
-                <Save size={14} className="text-amber-400" /> Save
+                <Save size={14} /> Save
               </button>
 
               <button
                 type="button"
                 onClick={handleDownloadPDF}
-                className="h-10 bg-neutral-900 text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 nav-transition action-press"
+                className="h-11 bg-[#0A192F] text-white font-medium rounded-xl text-xs flex items-center justify-center gap-1.5 nav-transition action-press shadow-xs"
               >
                 <Download size={14} /> Download PDF
               </button>
@@ -1635,13 +1635,13 @@ function InvoiceBuilderContent() {
       )}
 
       {/* Mobile Sticky Floating Bottom Bar */}
-      <div className="fixed bottom-14 left-0 right-0 p-3 bg-white/95 backdrop-blur-xs border-t border-neutral-200 md:hidden z-20">
+      <div className="fixed bottom-14 left-0 right-0 p-3 bg-white/95 backdrop-blur-xs border-t border-slate-200 md:hidden z-20">
         <div className="flex items-center gap-2 max-w-md mx-auto">
           <div className="flex-1">
-            <span className="text-[10px] text-neutral-500 font-medium block">
+            <span className="text-[10px] text-slate-500 font-medium block">
               Total bill
             </span>
-            <span className="text-sm font-semibold text-neutral-900 tabular-nums">
+            <span className="text-sm font-semibold text-slate-900 tabular-nums">
               ₹ {grandTotal.toLocaleString('en-IN')}
             </span>
           </div>
@@ -1649,7 +1649,7 @@ function InvoiceBuilderContent() {
           <button
             type="button"
             onClick={() => setShowMobilePreview(true)}
-            className="h-10 px-3 bg-neutral-100 text-neutral-900 rounded-lg border border-neutral-200 text-xs font-medium flex items-center gap-1"
+            className="h-10 px-3 bg-slate-100 text-slate-900 rounded-xl border border-slate-200 text-xs font-medium flex items-center gap-1"
           >
             <Eye size={15} />
             <span>View</span>
@@ -1658,9 +1658,9 @@ function InvoiceBuilderContent() {
           <button
             type="button"
             onClick={handleSaveInvoice}
-            className="flex-1 h-10 bg-[#0B0F17] hover:bg-[#151D2A] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 nav-transition action-press border border-white/[0.08]"
+            className="flex-1 h-10 bg-[#0284C7] hover:bg-[#0369A1] text-white font-medium rounded-xl text-xs flex items-center justify-center gap-1.5 nav-transition action-press shadow-xs"
           >
-            <Save size={15} className="text-amber-400" />
+            <Save size={15} />
             <span>Save bill</span>
           </button>
         </div>

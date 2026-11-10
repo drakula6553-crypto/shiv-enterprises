@@ -12,18 +12,33 @@ import {
   ShieldCheck,
   Building,
   ArrowUpRight,
+  Layers,
+  IndianRupee,
+  Activity,
+  HardHat,
 } from 'lucide-react';
 import { getInvoices, getExpenses } from '@/lib/storage';
+import { getProjectsRA, computeProjectRACalculations } from '@/lib/projectTracking';
 import { formatINR, formatDateIN } from '@/lib/utils';
 import type { Invoice, Expense } from '@/lib/types';
 
 export default function HomePage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [raProgressPct, setRaProgressPct] = useState<number>(59.75);
+  const [raDueAmount, setRaDueAmount] = useState<number>(12893924);
 
   useEffect(() => {
     setInvoices(getInvoices());
     setExpenses(getExpenses());
+    try {
+      const projects = getProjectsRA();
+      if (projects.length > 0) {
+        const calc = computeProjectRACalculations(projects[0]);
+        setRaProgressPct(calc.totalCompletedPercentage);
+        setRaDueAmount(calc.grandTotalDue);
+      }
+    } catch {}
   }, []);
 
   const totalBilled = invoices.reduce((acc, inv) => acc + (inv.grandTotal || 0), 0);
@@ -34,144 +49,170 @@ export default function HomePage() {
 
   const collectionPercent = totalBilled > 0 ? Math.round((totalReceived / totalBilled) * 100) : 0;
 
-  const recentInvoices = invoices.slice(0, 3);
-  const recentExpenses = expenses.slice(0, 3);
+  const recentInvoices = invoices.slice(0, 4);
+  const recentExpenses = expenses.slice(0, 4);
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto pb-24 md:pb-12">
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto pb-24 md:pb-12 space-y-6">
       {/* Context Executive Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-800 text-[11px] font-medium tracking-wide mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-800 text-[11px] font-semibold tracking-wide mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7]" />
             <span>Shiv Enterprises Operations</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 tracking-tight">
-            Financial & Site Overview
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-sans">
+            Financial &amp; Site Overview
           </h1>
-          <p className="text-xs text-neutral-500 mt-1">
-            Civil Contractors • Borivali (W), Mumbai • Live Ledger & GST Tax Invoicing
+          <p className="text-xs text-slate-500 mt-1">
+            Civil Contractors • Borivali (W), Mumbai • Turnkey High-Rise RCC &amp; Running Account Ledger
           </p>
         </div>
 
         {/* Date & Site Status */}
         <div className="flex items-center gap-2 sm:self-center">
-          <div className="px-3 py-1.5 rounded-lg bg-white border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)] text-xs text-neutral-600 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="font-medium text-neutral-800">Borivali Sites Active</span>
+          <div className="px-3 py-1.5 rounded-xl bg-white border border-slate-200/90 shadow-[0_1px_3px_rgba(15,23,42,0.03)] text-xs text-slate-600 flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-semibold text-slate-800">Borivali Sites Active</span>
           </div>
         </div>
       </div>
 
-      {/* Quick Action Cards */}
-      <section className="mb-8">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-          {/* New Bill (Primary Action) */}
+      {/* Quick Action Navigation Grid (5 Modules) */}
+      <section>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          {/* 1. New Bill (Primary Action) */}
           <Link
             href="/new-bill"
-            className="group relative bg-[#0B0F17] hover:bg-[#131926] active:bg-[#070A0F] text-white rounded-xl p-4 flex flex-col justify-between min-h-[108px] transition-all shadow-[0_2px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/[0.08] action-press"
+            className="group bg-[#0A192F] hover:bg-[#0D223F] active:bg-[#071324] text-white rounded-2xl p-4 flex flex-col justify-between min-h-[116px] transition-all border border-slate-800 shadow-[0_4px_16px_rgba(10,25,47,0.18)]"
           >
             <div className="flex items-center justify-between w-full">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <div className="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-300">
                 <FilePlus size={16} strokeWidth={2} />
               </div>
-              <ArrowUpRight size={14} className="text-neutral-500 group-hover:text-amber-400 transition-colors" />
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-sky-300 transition-colors" />
             </div>
             <div>
-              <span className="font-semibold text-sm block tracking-tight text-white">
+              <span className="font-bold text-sm block tracking-tight text-white font-sans">
                 New Bill
               </span>
-              <span className="text-[11px] text-neutral-400 block mt-0.5">
-                Harshmaan & custom
+              <span className="text-[11px] text-slate-300 block mt-0.5 font-medium">
+                Harshmaan &amp; custom
               </span>
             </div>
           </Link>
 
-          {/* Bills & Invoices */}
+          {/* 2. Project RA & Milestones (Flagship Ledger) */}
+          <Link
+            href="/project-tracking"
+            className="group bg-gradient-to-br from-[#F0F9FF] to-white hover:from-[#E0F2FE] hover:to-white text-slate-900 rounded-2xl p-4 flex flex-col justify-between min-h-[116px] transition-all border border-sky-200 shadow-[0_2px_12px_rgba(2,132,199,0.06)]"
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="w-8 h-8 rounded-xl bg-[#0284C7] flex items-center justify-center text-white shadow-sm">
+                <Layers size={16} strokeWidth={2} />
+              </div>
+              <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded-md">
+                {raProgressPct}% Done
+              </span>
+            </div>
+            <div>
+              <span className="font-bold text-sm block tracking-tight text-slate-900 font-sans">
+                Project RA Ledger
+              </span>
+              <span className="text-[11px] text-sky-800 block mt-0.5 font-mono font-semibold">
+                Due: ₹{formatINR(raDueAmount)}
+              </span>
+            </div>
+          </Link>
+
+          {/* 3. Bills & Invoices */}
           <Link
             href="/bills"
-            className="group bg-white hover:bg-neutral-50/80 active:bg-neutral-100 text-neutral-900 rounded-xl p-4 flex flex-col justify-between min-h-[108px] transition-all border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.02)] action-press"
+            className="group bg-white hover:bg-slate-50/80 active:bg-slate-100 text-slate-900 rounded-2xl p-4 flex flex-col justify-between min-h-[116px] transition-all border border-slate-200/90 shadow-[0_1px_3px_rgba(15,23,42,0.03)]"
           >
             <div className="flex items-center justify-between w-full">
-              <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-700">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
                 <FileText size={16} strokeWidth={1.5} />
               </div>
-              <ArrowUpRight size={14} className="text-neutral-400 group-hover:text-neutral-700 transition-colors" />
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-slate-700 transition-colors" />
             </div>
             <div>
-              <span className="font-semibold text-sm block tracking-tight text-neutral-900">
-                Bills & Invoices
+              <span className="font-bold text-sm block tracking-tight text-slate-900 font-sans">
+                Bills &amp; Invoices
               </span>
-              <span className="text-[11px] text-neutral-500 block mt-0.5">
-                Track payments & PDF
+              <span className="text-[11px] text-slate-500 block mt-0.5 font-medium">
+                {invoices.length} official bills
               </span>
             </div>
           </Link>
 
-          {/* Purchases & Expenses */}
+          {/* 4. Purchases & Expenses */}
           <Link
             href="/expenses"
-            className="group bg-white hover:bg-neutral-50/80 active:bg-neutral-100 text-neutral-900 rounded-xl p-4 flex flex-col justify-between min-h-[108px] transition-all border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.02)] action-press"
+            className="group bg-white hover:bg-slate-50/80 active:bg-slate-100 text-slate-900 rounded-2xl p-4 flex flex-col justify-between min-h-[116px] transition-all border border-slate-200/90 shadow-[0_1px_3px_rgba(15,23,42,0.03)]"
           >
             <div className="flex items-center justify-between w-full">
-              <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-700">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
                 <ShoppingBag size={16} strokeWidth={1.5} />
               </div>
-              <ArrowUpRight size={14} className="text-neutral-400 group-hover:text-neutral-700 transition-colors" />
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-slate-700 transition-colors" />
             </div>
             <div>
-              <span className="font-semibold text-sm block tracking-tight text-neutral-900">
-                Purchases & Expenses
+              <span className="font-bold text-sm block tracking-tight text-slate-900 font-sans">
+                Purchases &amp; Expenses
               </span>
-              <span className="text-[11px] text-neutral-500 block mt-0.5">
-                Materials & petty cash
+              <span className="text-[11px] text-slate-500 block mt-0.5 font-medium">
+                Materials &amp; fuel vouchers
               </span>
             </div>
           </Link>
 
-          {/* Subcontractor Ledgers */}
+          {/* 5. Subcontractors */}
           <Link
             href="/contractors"
-            className="group bg-white hover:bg-neutral-50/80 active:bg-neutral-100 text-neutral-900 rounded-xl p-4 flex flex-col justify-between min-h-[108px] transition-all border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.02)] action-press"
+            className="group bg-white hover:bg-slate-50/80 active:bg-slate-100 text-slate-900 rounded-2xl p-4 flex flex-col justify-between min-h-[116px] transition-all border border-slate-200/90 shadow-[0_1px_3px_rgba(15,23,42,0.03)] col-span-2 sm:col-span-1"
           >
             <div className="flex items-center justify-between w-full">
-              <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-700">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
                 <Users size={16} strokeWidth={1.5} />
               </div>
-              <ArrowUpRight size={14} className="text-neutral-400 group-hover:text-neutral-700 transition-colors" />
+              <ArrowUpRight size={14} className="text-slate-400 group-hover:text-slate-700 transition-colors" />
             </div>
             <div>
-              <span className="font-semibold text-sm block tracking-tight text-neutral-900">
+              <span className="font-bold text-sm block tracking-tight text-slate-900 font-sans">
                 Subcontractors
               </span>
-              <span className="text-[11px] text-neutral-500 block mt-0.5">
-                Work bills & ledgers
+              <span className="text-[11px] text-slate-500 block mt-0.5 font-medium">
+                Labour &amp; trade ledgers
               </span>
             </div>
           </Link>
         </div>
       </section>
 
-      {/* Financial Health & Clearance Rate Banner */}
-      <section className="mb-8 bg-white rounded-2xl p-5 sm:p-6 border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.03)]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-neutral-100">
+      {/* Financial Health & Clearance Rate Card */}
+      <section className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-[0_2px_12px_rgba(15,23,42,0.03)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
           <div>
-            <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-semibold block mb-1">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block mb-1">
               Financial Summary
             </span>
-            <h2 className="text-base font-bold text-neutral-900">
-              Billing & Collection Performance
+            <h2 className="text-base font-bold text-slate-900 font-sans">
+              Billing &amp; Collection Performance
             </h2>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-neutral-500">Collection Clearance:</span>
+            <span className="text-xs text-slate-500 font-medium">Collection Clearance:</span>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-neutral-900 font-mono">
+              <span className="text-sm font-bold text-slate-900 font-mono">
                 {collectionPercent}%
               </span>
-              <div className="w-24 h-2 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="w-28 h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-500"
+                  className="h-full bg-gradient-to-r from-[#0284C7] to-[#059669] rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, collectionPercent)}%` }}
                 />
               </div>
@@ -179,38 +220,42 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 4 Key Figures */}
+        {/* 4 Architectural Key Figures */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pt-5">
+          {/* Total Invoiced */}
           <div>
-            <span className="text-xs text-neutral-500 block">Total Billed (Invoiced)</span>
-            <p className="text-xl sm:text-2xl font-bold text-neutral-900 tabular-nums font-mono mt-1">
+            <span className="text-xs text-slate-500 font-medium block">Total Billed (Invoiced)</span>
+            <p className="text-xl sm:text-2xl font-bold text-slate-900 tabular-nums font-mono mt-1">
               {formatINR(totalBilled)}
             </p>
-            <p className="text-[11px] text-neutral-400 mt-1">{invoices.length} official bills</p>
+            <p className="text-[11px] text-slate-400 font-mono mt-1">{invoices.length} official bills</p>
           </div>
 
+          {/* Collected */}
           <div>
-            <span className="text-xs text-neutral-500 block">Collected & Cleared</span>
-            <p className="text-xl sm:text-2xl font-bold text-emerald-600 tabular-nums font-mono mt-1">
+            <span className="text-xs text-slate-500 font-medium block">Collected &amp; Cleared</span>
+            <p className="text-xl sm:text-2xl font-bold text-[#059669] tabular-nums font-mono mt-1">
               {formatINR(totalReceived)}
             </p>
             <p className="text-[11px] text-emerald-700/80 mt-1">RTGS / NEFT / Cheques</p>
           </div>
 
+          {/* Outstanding Due */}
           <div>
-            <span className="text-xs text-neutral-500 block">Outstanding Due</span>
-            <p className="text-xl sm:text-2xl font-bold text-rose-600 tabular-nums font-mono mt-1">
+            <span className="text-xs text-slate-500 font-medium block">Outstanding Balance Due</span>
+            <p className="text-xl sm:text-2xl font-bold text-[#DC2626] tabular-nums font-mono mt-1">
               {formatINR(totalPending)}
             </p>
-            <p className="text-[11px] text-rose-700/80 mt-1">{unpaidCount} bills pending</p>
+            <p className="text-[11px] text-rose-700/80 mt-1 font-mono">{unpaidCount} bills pending clearance</p>
           </div>
 
+          {/* Outflow */}
           <div>
-            <span className="text-xs text-neutral-500 block">Materials & Purchases</span>
-            <p className="text-xl sm:text-2xl font-bold text-neutral-800 tabular-nums font-mono mt-1">
+            <span className="text-xs text-slate-500 font-medium block">Materials &amp; Site Purchases</span>
+            <p className="text-xl sm:text-2xl font-bold text-slate-800 tabular-nums font-mono mt-1">
               {formatINR(totalExpenses)}
             </p>
-            <p className="text-[11px] text-neutral-400 mt-1">{expenses.length} site entries</p>
+            <p className="text-[11px] text-slate-400 font-mono mt-1">{expenses.length} recorded vouchers</p>
           </div>
         </div>
       </section>
@@ -218,120 +263,126 @@ export default function HomePage() {
       {/* Two Columns: Recent Bills & Recent Purchases */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Recent Client Invoices */}
-        <section>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 font-mono">
-              Recent Client Bills
-            </h2>
-            <Link
-              href="/bills"
-              className="text-xs font-medium text-neutral-600 hover:text-neutral-900 flex items-center gap-1 nav-transition"
-            >
-              <span>View all ({invoices.length})</span>
-              <ChevronRight size={13} />
-            </Link>
-          </div>
-
-          <div className="space-y-2.5">
-            {recentInvoices.map((inv) => (
+        <section className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_2px_12px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono flex items-center gap-2">
+                <FileText size={14} className="text-[#0284C7]" />
+                <span>Recent Client Bills</span>
+              </h2>
               <Link
-                key={inv.id}
-                href={`/new-bill?edit=${inv.id}`}
-                className="block bg-white rounded-xl p-4 border border-neutral-200/80 hover:border-neutral-300 shadow-[0_1px_3px_rgba(0,0,0,0.02)] nav-transition action-press"
+                href="/bills"
+                className="text-xs font-semibold text-[#0284C7] hover:text-[#0369A1] flex items-center gap-1 transition-colors"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs text-neutral-900 font-mono">
-                        {inv.invoiceNumber}
+                <span>View all ({invoices.length})</span>
+                <ChevronRight size={13} />
+              </Link>
+            </div>
+
+            <div className="space-y-2.5">
+              {recentInvoices.map((inv) => (
+                <Link
+                  key={inv.id}
+                  href={`/new-bill?edit=${inv.id}`}
+                  className="block bg-slate-50/70 hover:bg-slate-100/80 rounded-xl p-3.5 border border-slate-200/80 transition-all"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-slate-900 font-mono">
+                          {inv.invoiceNumber}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase font-mono bg-white border border-slate-200 text-slate-700">
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              inv.status === 'paid'
+                                ? 'bg-emerald-600'
+                                : inv.status === 'partial'
+                                ? 'bg-amber-500'
+                                : 'bg-rose-500'
+                            }`}
+                          />
+                          <span>{inv.status}</span>
+                        </span>
+                      </div>
+                      <p className="font-semibold text-slate-800 text-xs mt-1.5 truncate max-w-[220px]">
+                        {inv.clientName}
+                      </p>
+                      {inv.projectName && (
+                        <p className="text-[11px] text-slate-500 truncate max-w-[220px]">
+                          {inv.projectName}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-right">
+                      <span className="font-bold text-sm text-slate-900 tabular-nums font-mono block">
+                        ₹{formatINR(inv.grandTotal)}
                       </span>
-                      <span className="inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700">
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            inv.status === 'paid'
-                              ? 'bg-emerald-600'
-                              : inv.status === 'partial'
-                              ? 'bg-amber-500'
-                              : 'bg-rose-500'
-                          }`}
-                        />
-                        <span className="capitalize">{inv.status}</span>
+                      <span className="text-[11px] text-slate-400 block font-mono mt-0.5">
+                        {formatDateIN(inv.invoiceDate)}
                       </span>
                     </div>
-                    <p className="font-medium text-neutral-800 text-xs mt-1.5 truncate max-w-[220px]">
-                      {inv.clientName}
-                    </p>
-                    {inv.projectName && (
-                      <p className="text-[11px] text-neutral-400 truncate max-w-[220px]">
-                        {inv.projectName}
-                      </p>
-                    )}
                   </div>
-
-                  <div className="text-right">
-                    <span className="font-bold text-sm text-neutral-900 tabular-nums font-mono block">
-                      {formatINR(inv.grandTotal)}
-                    </span>
-                    <span className="text-[11px] text-neutral-400 block font-mono mt-0.5">
-                      {formatDateIN(inv.invoiceDate)}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Recent Purchases & Outflows */}
-        <section>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 font-mono">
-              Recent Purchases & Outflows
-            </h2>
-            <Link
-              href="/expenses"
-              className="text-xs font-medium text-neutral-600 hover:text-neutral-900 flex items-center gap-1 nav-transition"
-            >
-              <span>View all ({expenses.length})</span>
-              <ChevronRight size={13} />
-            </Link>
-          </div>
-
-          <div className="space-y-2.5">
-            {recentExpenses.map((exp) => (
-              <div
-                key={exp.id}
-                className="bg-white rounded-xl p-4 border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)]"
+        <section className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-[0_2px_12px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono flex items-center gap-2">
+                <ShoppingBag size={14} className="text-emerald-600" />
+                <span>Recent Site Outflows</span>
+              </h2>
+              <Link
+                href="/expenses"
+                className="text-xs font-semibold text-[#0284C7] hover:text-[#0369A1] flex items-center gap-1 transition-colors"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-medium text-neutral-700 bg-neutral-100 px-2 py-0.5 rounded-md font-mono">
-                        {exp.category}
+                <span>View all ({expenses.length})</span>
+                <ChevronRight size={13} />
+              </Link>
+            </div>
+
+            <div className="space-y-2.5">
+              {recentExpenses.map((exp) => (
+                <div
+                  key={exp.id}
+                  className="bg-slate-50/70 rounded-xl p-3.5 border border-slate-200/80"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded-md font-mono uppercase tracking-wider">
+                          {exp.category}
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-mono">
+                          {formatDateIN(exp.date)}
+                        </span>
+                      </div>
+                      <p className="font-semibold text-slate-800 text-xs mt-1.5 truncate max-w-[220px]">
+                        {exp.paidTo}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate max-w-[220px]">
+                        {exp.description}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="font-bold text-sm text-slate-900 tabular-nums font-mono block">
+                        ₹{formatINR(exp.amount)}
                       </span>
-                      <span className="text-[11px] text-neutral-400 font-mono">
-                        {formatDateIN(exp.date)}
+                      <span className="text-[10px] text-slate-400 uppercase font-mono font-bold mt-0.5 block">
+                        {exp.paymentMode}
                       </span>
                     </div>
-                    <p className="font-medium text-neutral-800 text-xs mt-1.5 truncate max-w-[220px]">
-                      {exp.paidTo}
-                    </p>
-                    <p className="text-[11px] text-neutral-400 truncate max-w-[220px]">
-                      {exp.description}
-                    </p>
-                  </div>
-
-                  <div className="text-right">
-                    <span className="font-bold text-sm text-neutral-900 tabular-nums font-mono block">
-                      {formatINR(exp.amount)}
-                    </span>
-                    <span className="text-[11px] text-neutral-400 uppercase font-mono mt-0.5 block">
-                      {exp.paymentMode}
-                    </span>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
       </div>

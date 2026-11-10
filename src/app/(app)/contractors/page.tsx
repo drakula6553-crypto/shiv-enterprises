@@ -504,7 +504,7 @@ export default function ContractorsPage() {
                 <button
                   type="button"
                   onClick={() => handleOpenRecordPayment(activeLedgerContractor)}
-                  className="px-3 h-8 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-medium nav-transition action-press"
+                  className="px-3 h-8 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-lg text-xs font-medium nav-transition action-press"
                 >
                   + Record pay
                 </button>
@@ -692,9 +692,9 @@ export default function ContractorsPage() {
             <button
               type="button"
               onClick={() => handleOpenAddContractor()}
-              className="bg-[#0B0F17] hover:bg-[#151D2A] active:bg-[#070A0F] text-white rounded-lg px-3.5 h-9 flex items-center gap-1.5 font-medium text-xs touch-target nav-transition action-press border border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+              className="bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white rounded-xl px-4 h-10 flex items-center gap-2 font-medium text-xs touch-target nav-transition action-press shadow-xs"
             >
-              <UserPlus size={16} strokeWidth={1.5} className="text-amber-400" />
+              <UserPlus size={16} strokeWidth={2} className="text-white" />
               <span>Add contractor</span>
             </button>
           </div>
@@ -782,7 +782,7 @@ export default function ContractorsPage() {
               <button
                 type="button"
                 onClick={() => handleOpenAddContractor()}
-                className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg px-4 h-9 font-medium text-xs nav-transition action-press"
+                className="inline-flex items-center gap-1.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl px-4 h-10 font-medium text-xs nav-transition action-press shadow-xs"
               >
                 <UserPlus size={16} /> Add first contractor
               </button>
@@ -1013,7 +1013,7 @@ export default function ContractorsPage() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full h-10 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg text-xs nav-transition action-press flex items-center justify-center gap-2"
+                  className="w-full h-11 bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white font-medium rounded-xl text-xs nav-transition action-press flex items-center justify-center gap-2 shadow-xs"
                 >
                   <Check size={16} />
                   <span>{editingContractor ? 'Save changes' : 'Add contractor'}</span>
@@ -1106,7 +1106,7 @@ export default function ContractorsPage() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full h-10 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg text-xs nav-transition action-press flex items-center justify-center gap-2"
+                  className="w-full h-11 bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white font-medium rounded-xl text-xs nav-transition action-press flex items-center justify-center gap-2 shadow-xs"
                 >
                   <Check size={16} />
                   <span>Save work bill</span>

@@ -11,7 +11,6 @@ import {
   Users,
   Settings,
   ShieldCheck,
-  Crown,
   Layers,
 } from 'lucide-react';
 import { getCurrentUser, isUserAdmin, AuthUser } from '@/lib/auth';
@@ -34,26 +33,30 @@ export default function Sidebar() {
   }, [pathname]);
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-[#0B0F17] text-neutral-200 fixed top-0 left-0 h-full z-40 border-r border-white/[0.07] select-none">
-      {/* Brand Header */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-white/[0.07]">
-        <div className="w-8 h-8 rounded-lg bg-white/[0.08] border border-white/[0.12] flex items-center justify-center overflow-hidden p-1 shadow-sm">
+    <aside className="hidden md:flex flex-col w-64 bg-[#0A192F] text-slate-200 fixed top-0 left-0 h-full z-40 border-r border-slate-800/80 select-none shadow-[2px_0_12px_rgba(2,12,27,0.35)]">
+      {/* Brand Header with 3D Architectural Logo */}
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-800/80 bg-[#071324]/50">
+        <div className="w-9 h-9 rounded-xl bg-white/[0.08] border border-white/[0.12] flex items-center justify-center overflow-hidden p-1 shadow-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Shiv Enterprises 3D Logo" className="w-full h-full object-contain" />
+          <img
+            src="/logo.png"
+            alt="Shiv Enterprises 3D Architectural Logo"
+            className="w-full h-full object-contain"
+          />
         </div>
         <div>
-          <h1 className="text-sm font-semibold tracking-wide text-white leading-tight">
+          <h1 className="text-sm font-bold tracking-tight text-white leading-tight font-sans">
             Shiv Enterprises
           </h1>
-          <p className="text-[11px] text-neutral-400 font-normal">
+          <p className="text-[10px] text-slate-400 font-medium tracking-wide">
             Civil Contractors • Mumbai
           </p>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        <p className="px-3 pt-2 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-neutral-500 font-mono">
+      {/* Main Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <p className="px-3 pt-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
           Operations
         </p>
         {navItems.map(({ href, label, icon: Icon }) => {
@@ -67,39 +70,48 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={`
-                flex items-center gap-3 px-3 h-9 rounded-lg
-                nav-transition text-xs font-medium
-                ${isActive
-                  ? 'bg-white/[0.08] text-white font-semibold border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-                  : 'text-neutral-400 hover:bg-white/[0.04] hover:text-white'
+                group flex items-center gap-3 px-3 h-9 rounded-xl
+                transition-all text-xs font-medium
+                ${
+                  isActive
+                    ? 'bg-[#0284C7]/15 text-white font-semibold border border-[#0284C7]/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
+                    : 'text-slate-300 hover:bg-white/[0.05] hover:text-white'
                 }
               `}
             >
               <Icon
                 size={16}
-                strokeWidth={1.5}
-                className={isActive ? 'text-amber-400' : 'text-neutral-500'}
+                strokeWidth={isActive ? 2 : 1.5}
+                className={
+                  isActive
+                    ? 'text-[#38BDF8]'
+                    : 'text-slate-400 group-hover:text-slate-200 transition-colors'
+                }
               />
-              <span>{label}</span>
+              <span className="truncate">{label}</span>
+              {isActive && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
+              )}
             </Link>
           );
         })}
 
-        {/* Strictly Admin Only Section - Hidden from regular partners */}
+        {/* Admin Authority Section */}
         {isUserAdmin(currentUser) && (
-          <div className="pt-3 border-t border-white/[0.05] mt-2">
-            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-400 font-mono flex items-center gap-1.5">
-              <Crown size={12} className="text-amber-400" />
+          <div className="pt-4 border-t border-slate-800/80 mt-3">
+            <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-sky-400 font-mono flex items-center gap-1.5">
+              <ShieldCheck size={12} className="text-sky-400" />
               <span>Admin Authority</span>
             </p>
             <Link
               href="/admin/tracking"
               className={`
-                flex items-center justify-between px-3 h-9 rounded-lg
-                nav-transition text-xs font-medium
-                ${pathname.startsWith('/admin/tracking')
-                  ? 'bg-amber-500/15 text-amber-300 font-semibold border border-amber-500/30 shadow-[inset_0_1px_0_rgba(245,158,11,0.15)]'
-                  : 'text-neutral-400 hover:bg-white/[0.04] hover:text-white'
+                flex items-center justify-between px-3 h-9 rounded-xl
+                transition-all text-xs font-medium
+                ${
+                  pathname.startsWith('/admin/tracking')
+                    ? 'bg-sky-500/15 text-sky-200 font-semibold border border-sky-500/30 shadow-[inset_0_1px_0_rgba(56,189,248,0.15)]'
+                    : 'text-slate-300 hover:bg-white/[0.05] hover:text-white'
                 }
               `}
             >
@@ -107,49 +119,51 @@ export default function Sidebar() {
                 <ShieldCheck
                   size={16}
                   strokeWidth={1.5}
-                  className="text-amber-400"
+                  className="text-sky-400"
                 />
-                <span>Audit & Tracking</span>
+                <span>Audit & Live Users</span>
               </div>
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono uppercase font-bold tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Admin
+              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-mono uppercase font-bold tracking-wider bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                Live
               </span>
             </Link>
           </div>
         )}
       </nav>
 
-      {/* Settings & Auth Footer */}
-      <div className="p-3 border-t border-white/[0.07] space-y-2">
+      {/* Settings & User Profile Footer */}
+      <div className="p-3 border-t border-slate-800/80 bg-[#071324]/40 space-y-2">
         <Link
           href="/settings"
           className={`
-            flex items-center gap-3 px-3 h-9 rounded-lg
-            nav-transition text-xs font-medium
-            ${pathname === '/settings'
-              ? 'bg-white/[0.08] text-white font-semibold border border-white/[0.08]'
-              : 'text-neutral-400 hover:bg-white/[0.04] hover:text-white'
+            flex items-center gap-3 px-3 h-9 rounded-xl
+            transition-all text-xs font-medium
+            ${
+              pathname === '/settings'
+                ? 'bg-[#0284C7]/15 text-white font-semibold border border-[#0284C7]/30'
+                : 'text-slate-300 hover:bg-white/[0.05] hover:text-white'
             }
           `}
         >
-          <Settings size={16} strokeWidth={1.5} className="text-neutral-400" />
+          <Settings size={16} strokeWidth={1.5} className="text-slate-400" />
           <span>Settings & Letterhead</span>
         </Link>
 
-        {/* User Profile / Status */}
-        <div className="pt-2 border-t border-white/[0.05] flex items-center justify-between px-2">
+        {/* User Profile Info */}
+        <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between px-2">
           <Link
             href="/admin/tracking"
             className="flex items-center gap-2.5 overflow-hidden group hover:opacity-95 transition-opacity"
+            title="View Live User Presence"
           >
-            <div className="w-7 h-7 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-bold text-[11px] shrink-0 shadow-sm">
+            <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30 flex items-center justify-center font-bold text-[11px] shrink-0 shadow-sm">
               {currentUser?.avatarInitials || 'HP'}
             </div>
             <div className="overflow-hidden">
-              <span className="text-xs font-semibold text-white block truncate group-hover:text-amber-400 transition-colors">
+              <span className="text-xs font-semibold text-white block truncate group-hover:text-sky-300 transition-colors">
                 {currentUser?.displayName || currentUser?.fullName || 'Harsh (Admin)'}
               </span>
-              <span className="text-[10px] text-neutral-400 block truncate">
+              <span className="text-[10px] text-slate-400 block truncate">
                 {currentUser?.roleTitle || 'Admin / Managing Partner'}
               </span>
             </div>
@@ -158,7 +172,7 @@ export default function Sidebar() {
           <Link
             href="/settings"
             title="Settings & Letterhead"
-            className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/[0.05] rounded-md transition-colors"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/[0.08] rounded-lg transition-colors"
           >
             <Settings size={14} />
           </Link>

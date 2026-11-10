@@ -483,19 +483,19 @@ export default function ExpensesPage() {
             type="button"
             onClick={() => loadData(true)}
             disabled={isSyncingCloud}
-            className="px-3 h-9 rounded-lg border border-neutral-200 hover:border-neutral-300 bg-white text-neutral-700 hover:text-neutral-900 text-xs font-medium flex items-center gap-1.5 shadow-xs transition disabled:opacity-60"
+            className="px-3 h-9 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-slate-700 hover:text-slate-900 text-xs font-medium flex items-center gap-1.5 shadow-xs transition disabled:opacity-60"
             title="Refresh from Supabase Cloud"
           >
-            <RefreshCw size={13} className={isSyncingCloud ? 'animate-spin text-amber-600' : 'text-neutral-400'} />
+            <RefreshCw size={13} className={isSyncingCloud ? 'animate-spin text-[#0284C7]' : 'text-slate-400'} />
             <span>{isSyncingCloud ? 'Syncing...' : 'Sync Cloud'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="bg-[#0B0F17] hover:bg-[#151D2A] active:bg-[#070A0F] text-white rounded-lg px-3.5 h-9 flex items-center gap-1.5 font-medium text-xs touch-target nav-transition action-press border border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+            className="bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white rounded-xl px-4 h-10 flex items-center gap-1.5 font-medium text-xs touch-target nav-transition action-press shadow-xs"
           >
-            <Plus size={16} strokeWidth={1.5} className="text-amber-400" />
+            <Plus size={16} strokeWidth={2} className="text-white" />
             <span>Record purchase</span>
           </button>
         </div>
@@ -503,41 +503,41 @@ export default function ExpensesPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 col-span-2 sm:col-span-1 shadow-xs">
-          <span className="text-xs text-neutral-500 block">Total outflow</span>
-          <p className="text-lg sm:text-xl font-semibold text-neutral-900 tabular-nums mt-1">
+        <div className="bg-white rounded-xl p-4 border border-slate-200 col-span-2 sm:col-span-1 shadow-xs">
+          <span className="text-xs text-slate-500 block">Total outflow</span>
+          <p className="text-lg sm:text-xl font-semibold text-slate-900 tabular-nums mt-1">
             {formatINR(totalSpent)}
           </p>
-          <p className="text-[11px] text-neutral-500 mt-1">{expenses.length} vouchers recorded</p>
+          <p className="text-[11px] text-slate-500 mt-1">{expenses.length} vouchers recorded</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-xs">
-          <span className="text-xs text-neutral-500 block">Materials</span>
-          <p className="text-lg sm:text-xl font-semibold text-neutral-900 tabular-nums mt-1">
+        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+          <span className="text-xs text-slate-500 block">Materials</span>
+          <p className="text-lg sm:text-xl font-semibold text-slate-900 tabular-nums mt-1">
             {formatINR(materialsSpent)}
           </p>
-          <p className="text-[11px] text-neutral-500 mt-1">Cement, steel, hardware</p>
+          <p className="text-[11px] text-slate-500 mt-1">Cement, steel, hardware</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-xs">
-          <span className="text-xs text-neutral-500 block">Machinery & fuel</span>
-          <p className="text-lg sm:text-xl font-semibold text-neutral-900 tabular-nums mt-1">
+        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+          <span className="text-xs text-slate-500 block">Machinery & fuel</span>
+          <p className="text-lg sm:text-xl font-semibold text-slate-900 tabular-nums mt-1">
             {formatINR(machineryTransportSpent)}
           </p>
-          <p className="text-[11px] text-neutral-500 mt-1">JCB, transport, diesel</p>
+          <p className="text-[11px] text-slate-500 mt-1">JCB, transport, diesel</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-xs">
-          <span className="text-xs text-neutral-500 block">Bill Photo Status</span>
+        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+          <span className="text-xs text-slate-500 block">Bill Photo Status</span>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-lg sm:text-xl font-semibold text-amber-700 tabular-nums">
+            <span className="text-lg sm:text-xl font-semibold text-slate-800 tabular-nums">
               {missingBillsCount}
             </span>
-            <span className="text-[11px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded font-medium border border-amber-200">
+            <span className="text-[11px] text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded font-medium border border-slate-200">
               Pending bill
             </span>
           </div>
-          <p className="text-[11px] text-neutral-500 mt-1">Can upload afterwards</p>
+          <p className="text-[11px] text-slate-500 mt-1">Can upload afterwards</p>
         </div>
       </div>
 
@@ -576,8 +576,8 @@ export default function ExpensesPage() {
             onClick={() => setReceiptFilter('missing')}
             className={`flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-medium nav-transition ${
               receiptFilter === 'missing'
-                ? 'bg-amber-600 text-white'
-                : 'bg-amber-50/80 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                ? 'bg-[#0A192F] text-white'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
             }`}
           >
             <FileWarning size={13} />
@@ -658,7 +658,7 @@ export default function ExpensesPage() {
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="inline-flex items-center gap-1.5 bg-[#0B0F17] hover:bg-neutral-800 text-white rounded-lg px-4 h-9 font-medium text-xs nav-transition action-press"
+            className="inline-flex items-center gap-1.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl px-4 h-10 font-medium text-xs nav-transition action-press shadow-xs"
           >
             <Plus size={16} /> Record first purchase
           </button>
@@ -773,15 +773,15 @@ export default function ExpensesPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-amber-50/50 border border-dashed border-amber-300">
-                      <div className="flex items-center gap-2 text-xs text-amber-900">
-                        <FileWarning size={15} className="text-amber-600 shrink-0" />
+                    <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 border border-dashed border-slate-300">
+                      <div className="flex items-center gap-2 text-xs text-slate-700">
+                        <FileWarning size={15} className="text-slate-500 shrink-0" />
                         <span>Bill document not generated / pending upload</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleOpenQuickUpload(exp)}
-                        className="flex items-center gap-1.5 px-3 h-7 rounded-md bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-[11px] font-semibold shadow-2xs nav-transition"
+                        className="flex items-center gap-1.5 px-3 h-7 rounded-lg bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white text-[11px] font-semibold shadow-xs nav-transition"
                       >
                         <Camera size={12} />
                         <span>+ Upload Bill Photo / PDF</span>
@@ -828,15 +828,16 @@ export default function ExpensesPage() {
       {/* Record / Edit Purchase Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-xl w-full max-w-lg max-h-[92vh] overflow-y-auto border border-neutral-200 shadow-xl">
-            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white rounded-t-2xl sm:rounded-t-xl sticky top-0 z-10">
-              <h3 className="font-semibold text-sm">
-                {editingExpense ? 'Edit purchase' : 'Record purchase / expense'}
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-[#0A192F] text-white rounded-t-2xl sm:rounded-t-2xl sticky top-0 z-10">
+              <h3 className="font-semibold text-sm tracking-tight text-white flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#38BDF8]" />
+                {editingExpense ? 'Edit purchase voucher' : 'Record purchase / expense'}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="p-1 text-neutral-400 hover:text-white rounded-md nav-transition"
+                className="p-1 text-slate-400 hover:text-white rounded-lg nav-transition"
               >
                 <X size={18} />
               </button>
@@ -1042,13 +1043,13 @@ export default function ExpensesPage() {
               </div>
 
               {/* ATTACH BILL PHOTO OR PDF (NEW FEATURE) */}
-              <div className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50/70 space-y-2">
+              <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-neutral-900 flex items-center gap-1.5">
-                    <Paperclip size={14} className="text-amber-600" />
+                  <label className="block text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+                    <Paperclip size={14} className="text-[#0284C7]" />
                     <span>Upload Bill / Receipt Photo or PDF</span>
                   </label>
-                  <span className="text-[10px] text-neutral-500 font-mono">
+                  <span className="text-[10px] text-slate-500 font-mono">
                     (Optional • Can upload later)
                   </span>
                 </div>
@@ -1062,14 +1063,14 @@ export default function ExpensesPage() {
                 />
 
                 {receiptUrl ? (
-                  <div className="p-2.5 rounded-lg bg-white border border-neutral-200 flex items-center justify-between gap-3">
+                  <div className="p-2.5 rounded-lg bg-white border border-slate-200 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5 overflow-hidden">
                       {receiptType === 'pdf' ? (
                         <div className="w-9 h-9 rounded-md bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0">
                           <FileText size={18} />
                         </div>
                       ) : (
-                        <div className="w-9 h-9 rounded-md bg-neutral-100 overflow-hidden shrink-0 border border-neutral-200">
+                        <div className="w-9 h-9 rounded-md bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={receiptUrl}
@@ -1079,7 +1080,7 @@ export default function ExpensesPage() {
                         </div>
                       )}
                       <div className="overflow-hidden">
-                        <span className="text-xs font-semibold text-neutral-900 block truncate">
+                        <span className="text-xs font-semibold text-slate-900 block truncate">
                           {receiptName || (receiptType === 'pdf' ? 'Bill_Document.pdf' : 'Receipt_Photo.jpg')}
                         </span>
                         <span className="text-[10px] text-emerald-700 font-medium flex items-center gap-1">
@@ -1092,14 +1093,14 @@ export default function ExpensesPage() {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="px-2 h-7 rounded border border-neutral-200 hover:bg-neutral-100 text-[11px] text-neutral-700 font-medium nav-transition"
+                        className="px-2 h-7 rounded border border-slate-200 hover:bg-slate-100 text-[11px] text-slate-700 font-medium nav-transition"
                       >
                         Change
                       </button>
                       <button
                         type="button"
                         onClick={handleRemoveReceipt}
-                        className="p-1 text-neutral-400 hover:text-rose-600 rounded nav-transition"
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded nav-transition"
                         title="Remove file"
                       >
                         <Trash2 size={14} />
@@ -1111,16 +1112,16 @@ export default function ExpensesPage() {
                     type="button"
                     disabled={isProcessingFile}
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full p-3.5 rounded-lg border border-dashed border-neutral-300 hover:border-neutral-400 bg-white flex flex-col items-center justify-center gap-1.5 text-center nav-transition group cursor-pointer"
+                    className="w-full p-3.5 rounded-xl border border-dashed border-sky-300 hover:border-[#0284C7] bg-sky-50/20 hover:bg-sky-50/40 flex flex-col items-center justify-center gap-1.5 text-center nav-transition group cursor-pointer"
                   >
-                    <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <div className="w-8 h-8 rounded-full bg-sky-500/10 text-[#0284C7] flex items-center justify-center group-hover:scale-105 transition-transform">
                       <Upload size={16} />
                     </div>
                     <div>
-                      <span className="text-xs font-semibold text-neutral-900 block">
+                      <span className="text-xs font-semibold text-slate-900 block">
                         {isProcessingFile ? 'Processing document...' : 'Click to take photo or choose PDF'}
                       </span>
-                      <span className="text-[11px] text-neutral-400 block mt-0.5">
+                      <span className="text-[11px] text-slate-500 block mt-0.5">
                         Supports camera snap, JPG, PNG, or vendor PDF bills
                       </span>
                     </div>
@@ -1129,7 +1130,7 @@ export default function ExpensesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-700 mb-1">
+                <label className="block text-xs font-medium text-slate-700 mb-1">
                   Notes
                 </label>
                 <input
@@ -1137,14 +1138,14 @@ export default function ExpensesPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. Delivered by truck MH-04-1234"
-                  className="w-full px-3 h-9 rounded-lg border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900"
+                  className="w-full px-3 h-9 rounded-lg border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-[#0284C7]"
                 />
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full h-10 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold rounded-lg text-xs nav-transition action-press flex items-center justify-center gap-2 shadow-[0_2px_10px_rgba(245,158,11,0.25)]"
+                  className="w-full h-11 bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white font-medium rounded-xl text-xs nav-transition action-press flex items-center justify-center gap-2 shadow-xs"
                 >
                   <Check size={16} />
                   <span>{editingExpense ? 'Save changes' : 'Save purchase voucher'}</span>
@@ -1236,16 +1237,16 @@ export default function ExpensesPage() {
                   type="button"
                   disabled={isProcessingFile}
                   onClick={() => quickFileInputRef.current?.click()}
-                  className="w-full p-6 rounded-xl border-2 border-dashed border-amber-400 bg-amber-50/40 hover:bg-amber-50 flex flex-col items-center justify-center gap-2 text-center nav-transition cursor-pointer"
+                  className="w-full p-6 rounded-2xl border-2 border-dashed border-sky-300 bg-sky-50/30 hover:bg-sky-50/60 flex flex-col items-center justify-center gap-2 text-center nav-transition cursor-pointer"
                 >
-                  <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-sky-500/15 text-[#0284C7] flex items-center justify-center">
                     <Camera size={20} />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-neutral-900 block">
+                    <span className="text-xs font-bold text-slate-900 block">
                       {isProcessingFile ? 'Processing...' : 'Upload Photo or PDF of Bill'}
                     </span>
-                    <span className="text-[11px] text-neutral-500 block mt-0.5">
+                    <span className="text-[11px] text-slate-500 block mt-0.5">
                       Camera photo, gallery screenshot, or PDF document
                     </span>
                   </div>
@@ -1256,7 +1257,7 @@ export default function ExpensesPage() {
                 <button
                   type="button"
                   onClick={() => setQuickUploadExpense(null)}
-                  className="px-4 h-9 rounded-lg border border-neutral-200 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
+                  className="px-4 h-9 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50"
                 >
                   Cancel
                 </button>
@@ -1264,7 +1265,7 @@ export default function ExpensesPage() {
                   type="button"
                   disabled={!quickReceiptUrl}
                   onClick={handleSaveQuickReceipt}
-                  className="px-4 h-9 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+                  className="px-4 h-9 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] disabled:opacity-50 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
                 >
                   <Check size={14} />
                   <span>Save Bill to Voucher</span>

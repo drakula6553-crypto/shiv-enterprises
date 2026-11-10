@@ -317,9 +317,9 @@ export default function BillsPage() {
         </div>
         <Link
           href="/new-bill"
-          className="bg-[#0B0F17] hover:bg-[#151D2A] active:bg-[#070A0F] text-white rounded-lg px-3.5 h-9 flex items-center gap-1.5 font-medium text-xs touch-target nav-transition action-press border border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
+          className="bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white rounded-xl px-4 h-10 flex items-center gap-2 font-medium text-xs touch-target nav-transition action-press shadow-xs"
         >
-          <FilePlus size={16} strokeWidth={1.5} className="text-amber-400" />
+          <FilePlus size={16} strokeWidth={2} className="text-white" />
           <span>New bill</span>
         </Link>
       </div>
@@ -410,7 +410,7 @@ export default function BillsPage() {
           </p>
           <Link
             href="/new-bill"
-            className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg px-4 h-9 font-medium text-xs nav-transition action-press"
+            className="inline-flex items-center gap-1.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl px-4 h-10 font-medium text-xs nav-transition action-press shadow-xs"
           >
             <FilePlus size={16} /> Create bill
           </Link>
@@ -424,24 +424,24 @@ export default function BillsPage() {
             return (
               <div
                 key={inv.id}
-                className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:border-neutral-300 nav-transition"
+                className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 nav-transition shadow-xs"
               >
                 {/* Bill Header */}
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-semibold text-sm text-neutral-900">
+                        <span className="font-mono font-semibold text-sm text-slate-900">
                           {inv.invoiceNumber}
                         </span>
                         {/* Quiet status dot */}
-                        <span className="inline-flex items-center gap-1.5 text-xs text-neutral-600">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-slate-600">
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
                               inv.status === 'paid'
                                 ? 'bg-emerald-600'
                                 : inv.status === 'partial'
-                                ? 'bg-amber-600'
+                                ? 'bg-[#0284C7]'
                                 : 'bg-rose-600'
                             }`}
                           />
@@ -453,22 +453,22 @@ export default function BillsPage() {
                         </span>
                       </div>
 
-                      <h3 className="font-semibold text-neutral-900 text-sm mt-1 leading-snug">
+                      <h3 className="font-semibold text-slate-900 text-sm mt-1 leading-snug">
                         {inv.clientName}
                       </h3>
                       {inv.projectName && (
-                        <p className="text-xs text-neutral-500 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           {inv.projectName}
                         </p>
                       )}
 
                       {/* Partner Creator & Timestamp Tracking */}
                       <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px]">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-800 font-medium">
-                          <User size={11} className="text-amber-600" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 font-medium font-mono text-[10px]">
+                          <User size={11} className="text-[#0284C7]" />
                           <span>Created by: {inv.createdBy?.name || 'Partner'}</span>
                         </span>
-                        <span className="text-neutral-500 font-mono text-[10px]">
+                        <span className="text-slate-500 font-mono text-[10px]">
                           • {inv.createdBy?.timestamp ? new Date(inv.createdBy.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : formatDateIN(inv.invoiceDate)}
                         </span>
                       </div>
@@ -756,7 +756,7 @@ export default function BillsPage() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full h-10 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg text-xs nav-transition action-press flex items-center justify-center gap-2"
+                  className="w-full h-11 bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white font-medium rounded-xl text-xs nav-transition action-press flex items-center justify-center gap-2 shadow-xs"
                 >
                   <Check size={16} />
                   <span>{editingPayment ? 'Save changes' : 'Confirm payment'}</span>

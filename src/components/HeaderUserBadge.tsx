@@ -17,14 +17,14 @@ export default function HeaderUserBadge() {
   return (
     <Link
       href={targetHref}
-      className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs transition-transform active:scale-95 ${
+      className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs transition-transform active:scale-95 shadow-sm ${
         isAdmin
-          ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
-          : 'bg-blue-500/20 border-blue-500/40 text-blue-300'
+          ? 'bg-sky-500/20 border-sky-500/30 text-sky-200'
+          : 'bg-slate-700/40 border-slate-600/40 text-slate-200'
       }`}
       title={user ? `Signed in as ${user.fullName} (${user.roleTitle})` : 'Partner Settings'}
     >
-      {user?.avatarInitials || (user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'SE')}
+      {user?.avatarInitials || (user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'HP')}
     </Link>
   );
 }

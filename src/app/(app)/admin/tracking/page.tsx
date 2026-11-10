@@ -321,7 +321,7 @@ export default function AdminTrackingPage() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center justify-center px-4 h-9 rounded-lg bg-[#0B0F17] hover:bg-neutral-800 text-white text-xs font-semibold transition-colors"
+          className="inline-flex items-center justify-center px-4 h-9 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-semibold shadow-xs transition-colors"
         >
           Return to Dashboard
         </Link>
@@ -337,7 +337,7 @@ export default function AdminTrackingPage() {
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800">Created</span>;
       case 'updated':
       case 'contractor_updated':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-800">Updated</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-sky-100 text-sky-800 border border-sky-200">Updated</span>;
       case 'deleted':
       case 'contractor_deleted':
       case 'bill_deleted':
@@ -363,7 +363,7 @@ export default function AdminTrackingPage() {
         <div
           className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
             isHarsh
-              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+              ? 'bg-[#0A192F] text-white shadow-2xs'
               : isGirish
               ? 'bg-blue-100 text-blue-800 border border-blue-300'
               : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
@@ -381,29 +381,29 @@ export default function AdminTrackingPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Top Banner with Dark Luxury Architectural Theme */}
-      <div className="bg-[#0B0F17] text-white rounded-2xl p-6 sm:p-8 border border-white/[0.08] shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Top Banner with Titanium Blueprint Theme */}
+      <div className="bg-[#0A192F] text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-3">
-              <ShieldCheck size={14} className="text-amber-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300 text-xs font-mono tracking-wider font-semibold mb-3">
+              <ShieldCheck size={14} className="text-[#38BDF8]" />
               <span>ADMIN COMPLETE OPERATIONS AUDIT TRAIL</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
               Operations &amp; Activity Tracking
               {onlineCount > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                   </span>
                   {onlineCount} Online
                 </span>
               )}
             </h1>
-            <p className="text-sm text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+            <p className="text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
               Complete live tracking of active partners, active screens, client tax invoices, purchase expenses, contractor records, and authentication sessions.
             </p>
           </div>
@@ -412,15 +412,15 @@ export default function AdminTrackingPage() {
             <button
               onClick={loadData}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3.5 h-9 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-medium text-neutral-200 transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3.5 h-9 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] text-xs font-medium text-slate-200 transition-all disabled:opacity-50"
             >
-              <RefreshCw size={13} className={isLoading ? 'animate-spin text-amber-400' : 'text-neutral-400'} />
+              <RefreshCw size={13} className={isLoading ? 'animate-spin text-[#38BDF8]' : 'text-slate-400'} />
               <span>Refresh</span>
             </button>
 
             <button
               onClick={exportCSV}
-              className="flex items-center gap-1.5 px-3.5 h-9 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-[0_2px_10px_rgba(245,158,11,0.25)] transition-all"
+              className="flex items-center gap-1.5 px-4 h-9 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] text-white text-xs font-medium shadow-xs transition-all"
             >
               <Download size={13} />
               <span>Export {activeTab.toUpperCase()} CSV</span>
@@ -429,25 +429,25 @@ export default function AdminTrackingPage() {
         </div>
 
         {/* Current Active Partner Status Pill */}
-        <div className="mt-6 pt-5 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs relative z-10">
+        <div className="mt-6 pt-5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs relative z-10">
           <div className="flex items-center gap-2">
-            <span className="text-neutral-400">Signed in as:</span>
+            <span className="text-slate-400">Signed in as:</span>
             <span className="font-semibold text-white flex items-center gap-1.5">
-              <Crown size={14} className="text-amber-400" />
+              <ShieldCheck size={14} className="text-[#38BDF8]" />
               {currentUser?.fullName || 'Harsh (Admin)'}
             </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase font-bold tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase font-bold tracking-wider bg-sky-500/20 text-sky-200 border border-sky-500/30">
               Admin / Managing Partner
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-neutral-400 text-[11px] font-mono">
+          <div className="flex items-center gap-3 text-slate-400 text-[11px] font-mono">
             <span className="flex items-center gap-1 text-emerald-400">
               <Activity size={12} className="animate-pulse" />
               Real-time Heartbeat Active
             </span>
             <span>•</span>
-            <span>Last synced: <strong className="text-neutral-200">{lastRefreshed || 'Just now'}</strong></span>
+            <span>Last synced: <strong className="text-slate-200">{lastRefreshed || 'Just now'}</strong></span>
             <span>•</span>
             <span>Supabase Cloud (ap-south-1)</span>
           </div>
@@ -491,18 +491,18 @@ export default function AdminTrackingPage() {
           onClick={() => setActiveTab('bills')}
           className={`cursor-pointer rounded-xl p-4 border transition-all ${
             activeTab === 'bills'
-              ? 'bg-amber-50/70 border-amber-300 shadow-sm'
-              : 'bg-white border-neutral-200 hover:border-neutral-300 shadow-sm'
+              ? 'bg-sky-50/70 border-[#0284C7] ring-1 ring-[#0284C7] shadow-sm'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
-          <div className="flex items-center justify-between text-neutral-500 text-xs mb-2">
-            <span className="font-medium">Client Bills Tracked</span>
-            <FileText size={16} className="text-amber-600" />
+          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
+            <span className="font-medium text-slate-700">Client Bills Tracked</span>
+            <FileText size={16} className="text-[#0284C7]" />
           </div>
-          <div className="text-2xl font-bold text-neutral-900 tabular-nums">
+          <div className="text-2xl font-bold text-slate-900 tabular-nums">
             {billLogs.length}
           </div>
-          <p className="text-[11px] text-neutral-600 mt-1 font-mono">
+          <p className="text-[11px] text-slate-600 mt-1 font-mono">
             Total: {formatINR(totalBillAmount)}
           </p>
         </div>
@@ -512,18 +512,18 @@ export default function AdminTrackingPage() {
           onClick={() => setActiveTab('expenses')}
           className={`cursor-pointer rounded-xl p-4 border transition-all ${
             activeTab === 'expenses'
-              ? 'bg-amber-50/70 border-amber-300 shadow-sm'
-              : 'bg-white border-neutral-200 hover:border-neutral-300 shadow-sm'
+              ? 'bg-sky-50/70 border-[#0284C7] ring-1 ring-[#0284C7] shadow-sm'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
-          <div className="flex items-center justify-between text-neutral-500 text-xs mb-2">
-            <span className="font-medium">Purchases &amp; Expenses</span>
+          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
+            <span className="font-medium text-slate-700">Purchases &amp; Expenses</span>
             <Receipt size={16} className="text-emerald-600" />
           </div>
-          <div className="text-2xl font-bold text-neutral-900 tabular-nums">
+          <div className="text-2xl font-bold text-slate-900 tabular-nums">
             {expenseLogs.length}
           </div>
-          <p className="text-[11px] text-neutral-600 mt-1 font-mono">
+          <p className="text-[11px] text-slate-600 mt-1 font-mono">
             Outflow: {formatINR(totalExpenseAmount)}
           </p>
         </div>
@@ -533,18 +533,18 @@ export default function AdminTrackingPage() {
           onClick={() => setActiveTab('contractors')}
           className={`cursor-pointer rounded-xl p-4 border transition-all ${
             activeTab === 'contractors'
-              ? 'bg-amber-50/70 border-amber-300 shadow-sm'
-              : 'bg-white border-neutral-200 hover:border-neutral-300 shadow-sm'
+              ? 'bg-sky-50/70 border-[#0284C7] ring-1 ring-[#0284C7] shadow-sm'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
-          <div className="flex items-center justify-between text-neutral-500 text-xs mb-2">
-            <span className="font-medium">Contractor Activities</span>
-            <Users size={16} className="text-blue-600" />
+          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
+            <span className="font-medium text-slate-700">Contractor Activities</span>
+            <Users size={16} className="text-slate-600" />
           </div>
-          <div className="text-2xl font-bold text-neutral-900 tabular-nums">
+          <div className="text-2xl font-bold text-slate-900 tabular-nums">
             {contractorLogs.length}
           </div>
-          <p className="text-[11px] text-neutral-600 mt-1 font-mono">
+          <p className="text-[11px] text-slate-600 mt-1 font-mono">
             Transacted: {formatINR(totalContractorAmount)}
           </p>
         </div>
@@ -554,18 +554,18 @@ export default function AdminTrackingPage() {
           onClick={() => setActiveTab('logins')}
           className={`cursor-pointer rounded-xl p-4 border transition-all ${
             activeTab === 'logins'
-              ? 'bg-amber-50/70 border-amber-300 shadow-sm'
-              : 'bg-white border-neutral-200 hover:border-neutral-300 shadow-sm'
+              ? 'bg-sky-50/70 border-[#0284C7] ring-1 ring-[#0284C7] shadow-sm'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
-          <div className="flex items-center justify-between text-neutral-500 text-xs mb-2">
-            <span className="font-medium">Partner Sessions</span>
-            <LogIn size={16} className="text-purple-600" />
+          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
+            <span className="font-medium text-slate-700">Partner Sessions</span>
+            <LogIn size={16} className="text-[#0284C7]" />
           </div>
-          <div className="text-2xl font-bold text-neutral-900 tabular-nums">
+          <div className="text-2xl font-bold text-slate-900 tabular-nums">
             {loginLogs.length}
           </div>
-          <p className="text-[11px] text-neutral-500 mt-1">Harsh16, girish1, kishor2</p>
+          <p className="text-[11px] text-slate-500 mt-1">Harsh16, girish1, kishor2</p>
         </div>
       </div>
 
@@ -594,52 +594,52 @@ export default function AdminTrackingPage() {
             {/* Bills Tab */}
             <button
               onClick={() => setActiveTab('bills')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === 'bills'
-                  ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-900'
+                  ? 'bg-[#0A192F] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <FileText size={14} className={activeTab === 'bills' ? 'text-amber-600' : 'text-neutral-400'} />
+              <FileText size={14} className={activeTab === 'bills' ? 'text-[#38BDF8]' : 'text-slate-400'} />
               <span>Bills Audit ({filteredBillLogs.length})</span>
             </button>
 
             {/* Expenses Tab */}
             <button
               onClick={() => setActiveTab('expenses')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === 'expenses'
-                  ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-900'
+                  ? 'bg-[#0A192F] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Receipt size={14} className={activeTab === 'expenses' ? 'text-emerald-600' : 'text-neutral-400'} />
+              <Receipt size={14} className={activeTab === 'expenses' ? 'text-emerald-400' : 'text-slate-400'} />
               <span>Expenses Audit ({filteredExpenseLogs.length})</span>
             </button>
 
             {/* Contractor Tab */}
             <button
               onClick={() => setActiveTab('contractors')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === 'contractors'
-                  ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-900'
+                  ? 'bg-[#0A192F] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Users size={14} className={activeTab === 'contractors' ? 'text-blue-600' : 'text-neutral-400'} />
+              <Users size={14} className={activeTab === 'contractors' ? 'text-[#38BDF8]' : 'text-slate-400'} />
               <span>Contractor Audit ({filteredContractorLogs.length})</span>
             </button>
 
             {/* Logins Tab */}
             <button
               onClick={() => setActiveTab('logins')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === 'logins'
-                  ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-900'
+                  ? 'bg-[#0A192F] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <LogIn size={14} className={activeTab === 'logins' ? 'text-purple-600' : 'text-neutral-400'} />
+              <LogIn size={14} className={activeTab === 'logins' ? 'text-[#38BDF8]' : 'text-slate-400'} />
               <span>Login History ({filteredLoginLogs.length})</span>
             </button>
           </div>
@@ -653,16 +653,16 @@ export default function AdminTrackingPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search audit records..."
-                className="h-8 pl-8 pr-2.5 rounded-lg border border-neutral-200 bg-white text-xs text-neutral-800 placeholder-neutral-400 focus:outline-none focus:border-amber-500 w-44 sm:w-56"
+                className="h-8 pl-8 pr-2.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7] w-44 sm:w-56"
               />
             </div>
 
             <div className="flex items-center gap-1.5">
-              <Filter size={13} className="text-neutral-400" />
+              <Filter size={13} className="text-slate-400" />
               <select
                 value={selectedPartnerFilter}
                 onChange={(e) => setSelectedPartnerFilter(e.target.value)}
-                className="h-8 px-2.5 rounded-lg border border-neutral-200 bg-white text-xs text-neutral-800 font-medium focus:outline-none focus:border-amber-500"
+                className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:border-[#0284C7]"
               >
                 <option value="all">All Partners</option>
                 <option value="harsh16">Harsh (Admin) • Harsh16</option>
@@ -735,17 +735,17 @@ export default function AdminTrackingPage() {
                       user.isOnline
                         ? 'bg-gradient-to-b from-emerald-50/70 to-white border-emerald-300 shadow-md ring-1 ring-emerald-400/40'
                         : user.isIdle
-                        ? 'bg-gradient-to-b from-amber-50/50 to-white border-amber-300 shadow-sm'
-                        : 'bg-white border-neutral-200/90 shadow-sm opacity-90'
+                        ? 'bg-slate-50/70 border-slate-200 shadow-xs'
+                        : 'bg-white border-slate-200/90 shadow-xs opacity-90'
                     }`}
                   >
                     {/* Top Status Banner */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm relative shadow-sm ${
+                          className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm relative shadow-xs ${
                             isHarsh
-                              ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white'
+                              ? 'bg-[#0A192F] text-white border border-slate-700'
                               : isGirish
                               ? 'bg-gradient-to-br from-blue-500 to-blue-700 text-white'
                               : 'bg-gradient-to-br from-emerald-500 to-teal-700 text-white'
@@ -761,12 +761,12 @@ export default function AdminTrackingPage() {
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <h3 className="font-bold text-neutral-900 text-sm">
+                            <h3 className="font-bold text-slate-900 text-sm">
                               {user.userName}
                             </h3>
-                            {isHarsh && <Crown size={13} className="text-amber-500" />}
+                            {isHarsh && <ShieldCheck size={13} className="text-[#0284C7]" />}
                           </div>
-                          <span className="text-[10px] font-mono text-neutral-500 block">
+                          <span className="text-[10px] font-mono text-slate-500 block">
                             @{user.username}
                           </span>
                         </div>
@@ -780,13 +780,13 @@ export default function AdminTrackingPage() {
                             ONLINE NOW
                           </span>
                         ) : user.isIdle ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-amber-100 text-amber-800 border border-amber-300">
-                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-slate-100 text-slate-700 border border-slate-300">
+                            <span className="w-2 h-2 rounded-full bg-slate-400" />
                             AWAY / IDLE
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-neutral-100 text-neutral-600 border border-neutral-200">
-                            <span className="w-2 h-2 rounded-full bg-neutral-400" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                            <span className="w-2 h-2 rounded-full bg-slate-400" />
                             OFFLINE
                           </span>
                         )}
@@ -796,10 +796,10 @@ export default function AdminTrackingPage() {
                     {/* Role Pill */}
                     <div className="mb-4">
                       <span
-                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        className={`inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider ${
                           isHarsh
-                            ? 'bg-amber-100 text-amber-900 border border-amber-200'
-                            : 'bg-neutral-100 text-neutral-700 border border-neutral-200'
+                            ? 'bg-sky-50 text-sky-900 border border-sky-200'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
                         }`}
                       >
                         {user.role}
@@ -852,8 +852,8 @@ export default function AdminTrackingPage() {
           <div className="bg-white rounded-xl border border-neutral-200 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4 border-b border-neutral-100 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
-                  <Zap size={14} className="text-amber-500" />
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Zap size={14} className="text-[#0284C7]" />
                   <span>Real-Time Activity &amp; Page Visit Stream</span>
                 </h3>
                 <p className="text-xs text-neutral-500 mt-0.5">
@@ -918,7 +918,7 @@ export default function AdminTrackingPage() {
             </div>
             <Link
               href="/new-bill"
-              className="text-xs text-amber-700 font-semibold hover:text-amber-800 flex items-center gap-1"
+              className="text-xs text-[#0284C7] font-semibold hover:text-[#0369A1] flex items-center gap-1"
             >
               <span>Create new bill</span>
               <ArrowRight size={13} />
@@ -1007,7 +1007,7 @@ export default function AdminTrackingPage() {
             </div>
             <Link
               href="/expenses"
-              className="text-xs text-amber-700 font-semibold hover:text-amber-800 flex items-center gap-1"
+              className="text-xs text-[#0284C7] font-semibold hover:text-[#0369A1] flex items-center gap-1"
             >
               <span>View expenses</span>
               <ArrowRight size={13} />
@@ -1094,7 +1094,7 @@ export default function AdminTrackingPage() {
             </div>
             <Link
               href="/contractors"
-              className="text-xs text-amber-700 font-semibold hover:text-amber-800 flex items-center gap-1"
+              className="text-xs text-[#0284C7] font-semibold hover:text-[#0369A1] flex items-center gap-1"
             >
               <span>Manage contractors</span>
               <ArrowRight size={13} />
@@ -1213,7 +1213,7 @@ export default function AdminTrackingPage() {
                             <div
                               className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
                                 isHarsh
-                                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                  ? 'bg-[#0A192F] text-white shadow-2xs'
                                   : isGirish
                                   ? 'bg-blue-100 text-blue-800 border border-blue-300'
                                   : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
@@ -1222,26 +1222,26 @@ export default function AdminTrackingPage() {
                               {isHarsh ? 'HP' : isGirish ? 'G' : 'K'}
                             </div>
                             <div>
-                              <span className="font-semibold text-neutral-900 block">
+                              <span className="font-semibold text-slate-900 block">
                                 {log.userName}
                               </span>
                             </div>
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-4 font-mono text-neutral-600">
+                        <td className="py-3.5 px-4 font-mono text-slate-600">
                           {log.username}
                         </td>
 
                         <td className="py-3.5 px-4">
                           <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider ${
                               isHarsh
-                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                                : 'bg-neutral-100 text-neutral-700 border border-neutral-200'
+                                ? 'bg-sky-50 text-sky-900 border border-sky-200'
+                                : 'bg-slate-100 text-slate-700 border border-slate-200'
                             }`}
                           >
-                            {isHarsh && <Crown size={11} className="text-amber-600" />}
+                            {isHarsh && <ShieldCheck size={11} className="text-[#0284C7]" />}
                             {log.role}
                           </span>
                         </td>
