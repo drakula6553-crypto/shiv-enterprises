@@ -2,6 +2,7 @@ import BottomNav from '@/components/BottomNav';
 import Sidebar from '@/components/Sidebar';
 import HeaderUserBadge from '@/components/HeaderUserBadge';
 import AuthGuard from '@/components/AuthGuard';
+import LivePresenceTracker from '@/components/LivePresenceTracker';
 import Link from 'next/link';
 import { Settings } from 'lucide-react';
 
@@ -12,6 +13,7 @@ export default function AppLayout({
 }) {
   return (
     <AuthGuard>
+      <LivePresenceTracker />
       <div className="min-h-screen bg-[#F7F8FA] text-neutral-900 font-sans selection:bg-amber-500/20 selection:text-amber-900">
         {/* Desktop sidebar */}
         <Sidebar />

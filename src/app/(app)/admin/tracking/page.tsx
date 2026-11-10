@@ -25,6 +25,13 @@ import {
   IndianRupee,
   Building2,
   Paperclip,
+  Radio,
+  Activity,
+  Eye,
+  Zap,
+  Globe,
+  Monitor,
+  Smartphone,
 } from 'lucide-react';
 import { getCurrentUser, isUserAdmin, AuthUser, PARTNER_ACCOUNTS } from '@/lib/auth';
 import {
@@ -37,7 +44,34 @@ import {
   ExpenseActivityLog,
   ContractorActivityLog,
 } from '@/lib/tracking';
+import {
+  getLiveUsersPresence,
+  getLiveActivityStream,
+  sendUserHeartbeat,
+  UserPresence,
+  LiveActivityItem,
+} from '@/lib/livePresence';
 import { formatINR } from '@/lib/utils';
+
+function formatLastSeen(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) {
+      return `${diffDays}d ago (${d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })})`;
+    }
+    if (diffHours > 0) return `${diffHours}h ago`;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    if (diffMins > 0) return `${diffMins}m ago`;
+    return 'Just now';
+  } catch {
+    return 'Offline';
+  }
+}
 
 export default function AdminTrackingPage() {
   const router = useRouter();
@@ -46,25 +80,32 @@ export default function AdminTrackingPage() {
   const [billLogs, setBillLogs] = useState<BillActivityLog[]>([]);
   const [expenseLogs, setExpenseLogs] = useState<ExpenseActivityLog[]>([]);
   const [contractorLogs, setContractorLogs] = useState<ContractorActivityLog[]>([]);
+  const [liveUsers, setLiveUsers] = useState<UserPresence[]>([]);
+  const [activityStream, setActivityStream] = useState<LiveActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPartnerFilter, setSelectedPartnerFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'bills' | 'expenses' | 'contractors' | 'logins'>('bills');
+  const [activeTab, setActiveTab] = useState<'live' | 'bills' | 'expenses' | 'contractors' | 'logins'>('live');
   const [lastRefreshed, setLastRefreshed] = useState<string>('');
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [lLogs, bLogs, eLogs, cLogs] = await Promise.all([
+      const [lLogs, bLogs, eLogs, cLogs, presence, stream] = await Promise.all([
         getLoginLogs(),
         getBillActivityLogs(),
         getExpenseActivityLogs(),
         getContractorActivityLogs(),
+        getLiveUsersPresence(),
+        getLiveActivityStream(),
       ]);
       setLoginLogs(lLogs);
       setBillLogs(bLogs);
       setExpenseLogs(eLogs);
       setContractorLogs(cLogs);
+      setLiveUsers(presence);
+      setActivityStream(stream);
       setLastRefreshed(
         new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       );
@@ -87,13 +128,45 @@ export default function AdminTrackingPage() {
     }
     setCurrentUser(user);
     loadData();
+    sendUserHeartbeat('/admin/tracking', 'Operations & Activity Tracking');
   }, [router]);
+
+  // Real-time polling every 5 seconds for live presence
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(async () => {
+      try {
+        const [presence, stream] = await Promise.all([
+          getLiveUsersPresence(),
+          getLiveActivityStream(),
+        ]);
+        setLiveUsers(presence);
+        setActivityStream(stream);
+      } catch (err) {
+        console.warn('Silent live presence refresh failed:', err);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
 
   // Universal Partner match helper
   const matchesPartner = (username: string) => {
     if (selectedPartnerFilter === 'all') return true;
     return username.toLowerCase() === selectedPartnerFilter.toLowerCase();
   };
+
+  // Filter live users
+  const filteredLiveUsers = liveUsers.filter((u) => {
+    if (!matchesPartner(u.username)) return false;
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      u.username.toLowerCase().includes(q) ||
+      u.userName.toLowerCase().includes(q) ||
+      u.currentPageTitle.toLowerCase().includes(q) ||
+      u.deviceInfo.toLowerCase().includes(q)
+    );
+  });
 
   // Filter bills
   const filteredBillLogs = billLogs.filter((b) => {
@@ -150,6 +223,7 @@ export default function AdminTrackingPage() {
   });
 
   // KPI Calculations
+  const onlineCount = liveUsers.filter((u) => u.isOnline).length;
   const totalBillAmount = billLogs.reduce((sum, b) => sum + (b.grandTotal || 0), 0);
   const totalExpenseAmount = expenseLogs.reduce((sum, e) => sum + (e.amount || 0), 0);
   const totalContractorAmount = contractorLogs.reduce((sum, c) => sum + (c.amount || 0), 0);
@@ -159,7 +233,19 @@ export default function AdminTrackingPage() {
     let rows: string[][] = [];
     let filename = `shiv_enterprises_audit_${activeTab}_${Date.now()}.csv`;
 
-    if (activeTab === 'bills') {
+    if (activeTab === 'live') {
+      headers = ['Username', 'Partner Name', 'Role', 'Status', 'Current Screen', 'Path', 'Device / OS', 'Last Heartbeat'];
+      rows = filteredLiveUsers.map((u) => [
+        `"${u.username}"`,
+        `"${u.userName}"`,
+        `"${u.role}"`,
+        `"${u.status.toUpperCase()}"`,
+        `"${u.currentPageTitle}"`,
+        `"${u.currentPage}"`,
+        `"${u.deviceInfo}"`,
+        `"${new Date(u.lastActiveAt).toLocaleString('en-IN')}"`,
+      ]);
+    } else if (activeTab === 'bills') {
       headers = ['Bill Number', 'Client Name', 'Action', 'Grand Total', 'Created By', 'Username', 'Role', 'Date & Time'];
       rows = filteredBillLogs.map((b) => [
         `"${b.invoiceNumber}"`,
@@ -231,7 +317,7 @@ export default function AdminTrackingPage() {
         </div>
         <h2 className="text-base font-bold text-neutral-900">Admin Authority Required</h2>
         <p className="text-xs text-neutral-500 leading-relaxed">
-          The Activity Audit & Tracking portal is strictly restricted to Admin (Harsh16). Regular partners do not have access to this section.
+          The Activity Audit &amp; Tracking portal is strictly restricted to Admin (Harsh16). Regular partners do not have access to this section.
         </p>
         <Link
           href="/"
@@ -258,27 +344,24 @@ export default function AdminTrackingPage() {
       case 'payment_deleted':
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-100 text-rose-800">Deleted</span>;
       case 'payment_recorded':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800">Payment</span>;
-      case 'bill_recorded':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-100 text-indigo-800">Work Bill</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800">Payment Recv</span>;
       case 'receipt_uploaded':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-100 text-teal-800">Receipt Photo/PDF</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800">Bill Uploaded</span>;
       case 'downloaded_pdf':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800">PDF Download</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-100 text-teal-800">PDF Export</span>;
       default:
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-neutral-100 text-neutral-700">{action}</span>;
     }
   };
 
-  // Render Partner Chip helper
-  const renderPartnerPill = (username: string, fullName: string, role: string) => {
+  const renderPartnerPill = (username: string, name: string, role: string) => {
     const isHarsh = username.toLowerCase() === 'harsh16';
     const isGirish = username.toLowerCase() === 'girish1';
 
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <div
-          className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
             isHarsh
               ? 'bg-amber-100 text-amber-800 border border-amber-300'
               : isGirish
@@ -289,32 +372,39 @@ export default function AdminTrackingPage() {
           {isHarsh ? 'HP' : isGirish ? 'G' : 'K'}
         </div>
         <div>
-          <span className="font-semibold text-neutral-900 block leading-tight">{fullName}</span>
-          <span className="text-[10px] text-neutral-400 font-mono block">
-            @{username} • {role}
-          </span>
+          <span className="font-semibold text-neutral-900 block leading-tight">{name}</span>
+          <span className="text-[10px] text-neutral-400 font-mono block">@{username}</span>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Top Banner & Header */}
-      <div className="bg-[#0B0F17] text-white rounded-2xl p-6 sm:p-8 border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Top Banner with Dark Luxury Architectural Theme */}
+      <div className="bg-[#0B0F17] text-white rounded-2xl p-6 sm:p-8 border border-white/[0.08] shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-3">
               <ShieldCheck size={14} className="text-amber-400" />
               <span>ADMIN COMPLETE OPERATIONS AUDIT TRAIL</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
               Operations &amp; Activity Tracking
+              {onlineCount > 0 && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  {onlineCount} Online
+                </span>
+              )}
             </h1>
             <p className="text-sm text-neutral-400 mt-1 max-w-2xl leading-relaxed">
-              Complete live tracking of who created or modified client bills, recorded purchase expenses, attached bill photos/PDFs, managed subcontractor ledgers, and signed in.
+              Complete live tracking of active partners, active screens, client tax invoices, purchase expenses, contractor records, and authentication sessions.
             </p>
           </div>
 
@@ -339,7 +429,7 @@ export default function AdminTrackingPage() {
         </div>
 
         {/* Current Active Partner Status Pill */}
-        <div className="mt-6 pt-5 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="mt-6 pt-5 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs relative z-10">
           <div className="flex items-center gap-2">
             <span className="text-neutral-400">Signed in as:</span>
             <span className="font-semibold text-white flex items-center gap-1.5">
@@ -351,15 +441,52 @@ export default function AdminTrackingPage() {
             </span>
           </div>
 
-          <div className="text-neutral-400 text-[11px] font-mono">
-            Last synced: <span className="text-neutral-200">{lastRefreshed || 'Just now'}</span> • Supabase Cloud (ap-south-1)
+          <div className="flex items-center gap-3 text-neutral-400 text-[11px] font-mono">
+            <span className="flex items-center gap-1 text-emerald-400">
+              <Activity size={12} className="animate-pulse" />
+              Real-time Heartbeat Active
+            </span>
+            <span>•</span>
+            <span>Last synced: <strong className="text-neutral-200">{lastRefreshed || 'Just now'}</strong></span>
+            <span>•</span>
+            <span>Supabase Cloud (ap-south-1)</span>
           </div>
         </div>
       </div>
 
-      {/* KPI Stats Row: 4 Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Bills */}
+      {/* KPI Stats Row: 5 Metric Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+        {/* Card 1: Live Users Online */}
+        <div
+          onClick={() => setActiveTab('live')}
+          className={`cursor-pointer rounded-xl p-4 border transition-all ${
+            activeTab === 'live'
+              ? 'bg-emerald-50/80 border-emerald-400 shadow-sm ring-1 ring-emerald-400'
+              : 'bg-white border-neutral-200 hover:border-emerald-300 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between text-neutral-500 text-xs mb-2">
+            <span className="font-semibold text-emerald-800 flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Live Users Online
+            </span>
+            <Radio size={16} className="text-emerald-600 animate-pulse" />
+          </div>
+          <div className="text-2xl font-bold text-neutral-900 tabular-nums flex items-baseline gap-2">
+            <span>{onlineCount}</span>
+            <span className="text-xs font-semibold text-emerald-700">Online Now</span>
+          </div>
+          <p className="text-[11px] text-neutral-600 mt-1 truncate">
+            {onlineCount > 0
+              ? `${liveUsers.filter((u) => u.isOnline).map((u) => u.userName.split(' ')[0]).join(', ')} active`
+              : 'No partners currently active'}
+          </p>
+        </div>
+
+        {/* Card 2: Bills */}
         <div
           onClick={() => setActiveTab('bills')}
           className={`cursor-pointer rounded-xl p-4 border transition-all ${
@@ -380,7 +507,7 @@ export default function AdminTrackingPage() {
           </p>
         </div>
 
-        {/* Expenses */}
+        {/* Card 3: Expenses */}
         <div
           onClick={() => setActiveTab('expenses')}
           className={`cursor-pointer rounded-xl p-4 border transition-all ${
@@ -401,7 +528,7 @@ export default function AdminTrackingPage() {
           </p>
         </div>
 
-        {/* Contractors */}
+        {/* Card 4: Contractors */}
         <div
           onClick={() => setActiveTab('contractors')}
           className={`cursor-pointer rounded-xl p-4 border transition-all ${
@@ -422,7 +549,7 @@ export default function AdminTrackingPage() {
           </p>
         </div>
 
-        {/* Logins */}
+        {/* Card 5: Logins */}
         <div
           onClick={() => setActiveTab('logins')}
           className={`cursor-pointer rounded-xl p-4 border transition-all ${
@@ -445,8 +572,26 @@ export default function AdminTrackingPage() {
       {/* Filter and Tab Bar */}
       <div className="bg-white rounded-xl p-4 border border-neutral-200 shadow-sm space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Main 4 Tabs */}
+          {/* Main 5 Tabs */}
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-neutral-100 rounded-lg">
+            {/* Live Users Tab */}
+            <button
+              onClick={() => setActiveTab('live')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                activeTab === 'live'
+                  ? 'bg-white text-emerald-950 shadow-sm border border-emerald-200'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <Radio size={14} className={activeTab === 'live' ? 'text-emerald-600' : 'text-neutral-400'} />
+              <span>Live Users ({onlineCount} Online)</span>
+            </button>
+
+            {/* Bills Tab */}
             <button
               onClick={() => setActiveTab('bills')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
@@ -459,6 +604,7 @@ export default function AdminTrackingPage() {
               <span>Bills Audit ({filteredBillLogs.length})</span>
             </button>
 
+            {/* Expenses Tab */}
             <button
               onClick={() => setActiveTab('expenses')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
@@ -471,6 +617,7 @@ export default function AdminTrackingPage() {
               <span>Expenses Audit ({filteredExpenseLogs.length})</span>
             </button>
 
+            {/* Contractor Tab */}
             <button
               onClick={() => setActiveTab('contractors')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
@@ -483,6 +630,7 @@ export default function AdminTrackingPage() {
               <span>Contractor Audit ({filteredContractorLogs.length})</span>
             </button>
 
+            {/* Logins Tab */}
             <button
               onClick={() => setActiveTab('logins')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
@@ -528,7 +676,235 @@ export default function AdminTrackingPage() {
 
       {/* Main Content Area based on Tab */}
 
-      {/* TAB 1: BILLS AUDIT */}
+      {/* ════════════════════════════════════════════════════════════
+          TAB 0: LIVE USERS PRESENCE & REAL-TIME ACTIVITY
+      ════════════════════════════════════════════════════════════ */}
+      {activeTab === 'live' && (
+        <div className="space-y-6">
+          {/* Top Live Status Bar */}
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                  </span>
+                  <h2 className="text-base font-bold text-neutral-900">
+                    Live Partner Presence &amp; Real-Time Activity
+                  </h2>
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Heartbeat monitoring tracks every partner's current active screen, device, and connection status in real-time.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => setAutoRefresh(!autoRefresh)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-colors ${
+                    autoRefresh
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-neutral-100 text-neutral-600'
+                  }`}
+                >
+                  <Activity size={13} className={autoRefresh ? 'text-emerald-600 animate-pulse' : 'text-neutral-400'} />
+                  <span>{autoRefresh ? 'Live Auto-Sync (5s)' : 'Paused'}</span>
+                </button>
+
+                <button
+                  onClick={loadData}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-neutral-900 text-white rounded-lg text-xs font-semibold hover:bg-neutral-800 transition-colors"
+                >
+                  <RefreshCw size={12} className={isLoading ? 'animate-spin' : ''} />
+                  <span>Ping Now</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Partner Presence Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              {filteredLiveUsers.map((user) => {
+                const isHarsh = user.username.toLowerCase() === 'harsh16';
+                const isGirish = user.username.toLowerCase() === 'girish1';
+
+                return (
+                  <div
+                    key={user.username}
+                    className={`rounded-2xl p-5 border transition-all relative overflow-hidden ${
+                      user.isOnline
+                        ? 'bg-gradient-to-b from-emerald-50/70 to-white border-emerald-300 shadow-md ring-1 ring-emerald-400/40'
+                        : user.isIdle
+                        ? 'bg-gradient-to-b from-amber-50/50 to-white border-amber-300 shadow-sm'
+                        : 'bg-white border-neutral-200/90 shadow-sm opacity-90'
+                    }`}
+                  >
+                    {/* Top Status Banner */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm relative shadow-sm ${
+                            isHarsh
+                              ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white'
+                              : isGirish
+                              ? 'bg-gradient-to-br from-blue-500 to-blue-700 text-white'
+                              : 'bg-gradient-to-br from-emerald-500 to-teal-700 text-white'
+                          }`}
+                        >
+                          {isHarsh ? 'HP' : isGirish ? 'G' : 'K'}
+                          {user.isOnline && (
+                            <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="font-bold text-neutral-900 text-sm">
+                              {user.userName}
+                            </h3>
+                            {isHarsh && <Crown size={13} className="text-amber-500" />}
+                          </div>
+                          <span className="text-[10px] font-mono text-neutral-500 block">
+                            @{user.username}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Status Pill */}
+                      <div>
+                        {user.isOnline ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            ONLINE NOW
+                          </span>
+                        ) : user.isIdle ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-amber-100 text-amber-800 border border-amber-300">
+                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                            AWAY / IDLE
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-neutral-100 text-neutral-600 border border-neutral-200">
+                            <span className="w-2 h-2 rounded-full bg-neutral-400" />
+                            OFFLINE
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Role Pill */}
+                    <div className="mb-4">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          isHarsh
+                            ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                            : 'bg-neutral-100 text-neutral-700 border border-neutral-200'
+                        }`}
+                      >
+                        {user.role}
+                      </span>
+                    </div>
+
+                    {/* Details Box */}
+                    <div className="space-y-2.5 text-xs pt-3 border-t border-neutral-100">
+                      {/* Current Active Screen */}
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-0.5">
+                          Active Screen
+                        </span>
+                        <div className="flex items-center gap-1.5 text-neutral-900 font-semibold bg-neutral-50 p-2 rounded-lg border border-neutral-200/70">
+                          <Eye size={13} className={user.isOnline ? 'text-emerald-600' : 'text-neutral-400'} />
+                          <span className="truncate">{user.currentPageTitle}</span>
+                        </div>
+                        <div className="text-[10px] font-mono text-neutral-400 mt-0.5 px-1 truncate">
+                          Path: {user.currentPage}
+                        </div>
+                      </div>
+
+                      {/* Device / OS */}
+                      <div className="flex justify-between items-center text-neutral-600 pt-1">
+                        <span className="text-[11px] text-neutral-500">Device:</span>
+                        <span className="font-medium text-neutral-800 text-[11px] truncate max-w-[180px]">
+                          {user.deviceInfo}
+                        </span>
+                      </div>
+
+                      {/* Last Heartbeat */}
+                      <div className="flex justify-between items-center text-neutral-600">
+                        <span className="text-[11px] text-neutral-500">Heartbeat:</span>
+                        <span className={`font-mono text-[11px] font-semibold ${user.isOnline ? 'text-emerald-700' : 'text-neutral-600'}`}>
+                          {user.isOnline
+                            ? `Active now (${user.secondsAgo}s ago)`
+                            : user.isIdle
+                            ? `Idle (${Math.floor(user.secondsAgo / 60)}m ago)`
+                            : formatLastSeen(user.lastActiveAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Real-Time Live Activity Stream / Breadcrumbs */}
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4 border-b border-neutral-100 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
+                  <Zap size={14} className="text-amber-500" />
+                  <span>Real-Time Activity &amp; Page Visit Stream</span>
+                </h3>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Live breadcrumbs logged as partners navigate screens and execute operations.
+                </p>
+              </div>
+              <span className="text-[11px] font-mono text-neutral-400">
+                {activityStream.length} event{activityStream.length === 1 ? '' : 's'} logged
+              </span>
+            </div>
+
+            {activityStream.length === 0 ? (
+              <div className="p-8 text-center text-neutral-500 text-xs">
+                No recent activity breadcrumbs logged yet. As partners navigate, live events will appear here in real time.
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                {activityStream.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-neutral-50 hover:bg-neutral-100/80 border border-neutral-200/60 text-xs transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="font-bold text-neutral-900">{item.userName}</span>
+                      <span className="text-neutral-600 font-medium">{item.details}</span>
+                      <span className="text-[10px] font-mono text-neutral-400 bg-white px-1.5 py-0.5 rounded border border-neutral-200">
+                        {item.pagePath}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-neutral-400 font-mono text-[11px]">
+                      <span>{item.deviceInfo}</span>
+                      <span>
+                        {new Date(item.createdAt).toLocaleTimeString('en-IN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════
+          TAB 1: BILLS AUDIT
+      ════════════════════════════════════════════════════════════ */}
       {activeTab === 'bills' && (
         <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-neutral-200 flex items-center justify-between">
@@ -581,7 +957,7 @@ export default function AdminTrackingPage() {
                           {log.clientName}
                         </span>
                         {log.notes && (
-                          <span className="text-[10px] text-neutral-500 font-mono block">
+                          <span className="text-[11px] text-neutral-400 block truncate max-w-xs">
                             {log.notes}
                           </span>
                         )}
@@ -615,23 +991,25 @@ export default function AdminTrackingPage() {
         </div>
       )}
 
-      {/* TAB 2: EXPENSES AUDIT */}
+      {/* ════════════════════════════════════════════════════════════
+          TAB 2: EXPENSES AUDIT
+      ════════════════════════════════════════════════════════════ */}
       {activeTab === 'expenses' && (
         <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-neutral-200 flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-neutral-900">
-                Purchases &amp; Site Outflows Audit Log
+                Purchases, Site Expenses &amp; Receipt Uploads Audit
               </h2>
               <p className="text-xs text-neutral-500 mt-0.5">
-                Tracks who recorded materials, machinery, labour, tea/food vouchers, or uploaded bill photos/PDF receipts.
+                Tracks materials bought, equipment hired, fuel expenses, and attached bill photos/PDFs.
               </p>
             </div>
             <Link
               href="/expenses"
               className="text-xs text-amber-700 font-semibold hover:text-amber-800 flex items-center gap-1"
             >
-              <span>Manage purchases</span>
+              <span>View expenses</span>
               <ArrowRight size={13} />
             </Link>
           </div>
@@ -639,9 +1017,9 @@ export default function AdminTrackingPage() {
           {filteredExpenseLogs.length === 0 ? (
             <div className="p-12 text-center">
               <Receipt size={32} className="mx-auto text-neutral-300 mb-3" />
-              <p className="text-sm font-medium text-neutral-700">No purchase activity recorded yet</p>
+              <p className="text-sm font-medium text-neutral-700">No expense logs match current filters</p>
               <p className="text-xs text-neutral-500 mt-1">
-                Any voucher recorded or bill receipt attached by partners will be logged here with exact timestamps.
+                Any voucher entered by partners will be logged with full details here.
               </p>
             </div>
           ) : (
@@ -649,11 +1027,11 @@ export default function AdminTrackingPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-neutral-50 text-neutral-500 font-medium border-b border-neutral-200">
                   <tr>
-                    <th className="py-3 px-4">Paid To / Supplier</th>
+                    <th className="py-3 px-4">Paid To / Vendor</th>
                     <th className="py-3 px-4">Category &amp; Site</th>
-                    <th className="py-3 px-4">Bill #</th>
                     <th className="py-3 px-4">Action</th>
                     <th className="py-3 px-4">Amount</th>
+                    <th className="py-3 px-4">Bill No</th>
                     <th className="py-3 px-4">Partner</th>
                     <th className="py-3 px-4">Exact Timestamp</th>
                   </tr>
@@ -665,21 +1043,17 @@ export default function AdminTrackingPage() {
                         {log.paidTo}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="font-medium text-neutral-800 block">
-                          {log.category}
-                        </span>
-                        <span className="text-[10px] text-neutral-500 block truncate max-w-xs">
-                          Site: {log.projectName || 'General'}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-neutral-600">
-                        {log.billNumber || '—'}
+                        <span className="font-medium text-neutral-800 block">{log.category}</span>
+                        <span className="text-[11px] text-neutral-500 block">{log.projectName}</span>
                       </td>
                       <td className="py-3.5 px-4">
                         {renderActionBadge(log.action)}
                       </td>
                       <td className="py-3.5 px-4 font-semibold text-neutral-900 tabular-nums">
                         {formatINR(log.amount)}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-neutral-600">
+                        {log.billNumber || '—'}
                       </td>
                       <td className="py-3.5 px-4">
                         {renderPartnerPill(log.createdByUsername, log.createdByName, log.createdByRole)}
@@ -704,23 +1078,25 @@ export default function AdminTrackingPage() {
         </div>
       )}
 
-      {/* TAB 3: CONTRACTORS AUDIT */}
+      {/* ════════════════════════════════════════════════════════════
+          TAB 3: CONTRACTOR AUDIT
+      ════════════════════════════════════════════════════════════ */}
       {activeTab === 'contractors' && (
         <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-neutral-200 flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-neutral-900">
-                Subcontractors &amp; Labour Ledgers Audit Log
+                Subcontractor &amp; Labour Ledger Audit Trail
               </h2>
               <p className="text-xs text-neutral-500 mt-0.5">
-                Tracks who added contractors, recorded measurement work bills, or released labour payments.
+                Tracks subcontractor creation, trade bills recorded, and kharchi/cash payments.
               </p>
             </div>
             <Link
               href="/contractors"
               className="text-xs text-amber-700 font-semibold hover:text-amber-800 flex items-center gap-1"
             >
-              <span>View subcontractor ledgers</span>
+              <span>Manage contractors</span>
               <ArrowRight size={13} />
             </Link>
           </div>
@@ -728,9 +1104,9 @@ export default function AdminTrackingPage() {
           {filteredContractorLogs.length === 0 ? (
             <div className="p-12 text-center">
               <Users size={32} className="mx-auto text-neutral-300 mb-3" />
-              <p className="text-sm font-medium text-neutral-700">No contractor activity recorded yet</p>
+              <p className="text-sm font-medium text-neutral-700">No contractor audit logs match filters</p>
               <p className="text-xs text-neutral-500 mt-1">
-                When partners add subcontractors or record bills/payments, they will appear here in real time.
+                When partners add sub-contractors, record trade bills, or release payments, they appear here.
               </p>
             </div>
           ) : (
@@ -788,7 +1164,9 @@ export default function AdminTrackingPage() {
         </div>
       )}
 
-      {/* TAB 4: LOGINS AUDIT */}
+      {/* ════════════════════════════════════════════════════════════
+          TAB 4: LOGINS AUDIT
+      ════════════════════════════════════════════════════════════ */}
       {activeTab === 'logins' && (
         <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-neutral-200">
@@ -818,13 +1196,15 @@ export default function AdminTrackingPage() {
                     <th className="py-3 px-4">Role Access</th>
                     <th className="py-3 px-4">Login Date &amp; Time</th>
                     <th className="py-3 px-4">Device / Platform</th>
-                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Live Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {filteredLoginLogs.map((log) => {
                     const isHarsh = log.username.toLowerCase() === 'harsh16';
                     const isGirish = log.username.toLowerCase() === 'girish1';
+                    const presence = liveUsers.find((u) => u.username.toLowerCase() === log.username.toLowerCase());
+                    const isCurrentlyOnline = presence?.isOnline;
 
                     return (
                       <tr key={log.id} className="hover:bg-neutral-50/70 transition-colors">
@@ -848,22 +1228,25 @@ export default function AdminTrackingPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-medium text-neutral-700">
+
+                        <td className="py-3.5 px-4 font-mono text-neutral-600">
                           {log.username}
                         </td>
+
                         <td className="py-3.5 px-4">
                           <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                               isHarsh
-                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
                                 : 'bg-neutral-100 text-neutral-700 border border-neutral-200'
                             }`}
                           >
-                            {isHarsh ? <Crown size={11} className="text-amber-600" /> : <HardHat size={11} className="text-neutral-500" />}
+                            {isHarsh && <Crown size={11} className="text-amber-600" />}
                             {log.role}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-mono text-neutral-700">
+
+                        <td className="py-3.5 px-4 font-mono text-neutral-700 text-[11px]">
                           {new Date(log.loginAt).toLocaleString('en-IN', {
                             day: '2-digit',
                             month: 'short',
@@ -874,17 +1257,26 @@ export default function AdminTrackingPage() {
                             hour12: true,
                           })}
                         </td>
-                        <td className="py-3.5 px-4 text-neutral-600 font-mono text-[11px]">
-                          <span className="flex items-center gap-1.5">
+
+                        <td className="py-3.5 px-4 text-neutral-600">
+                          <div className="flex items-center gap-1.5 font-mono text-[11px]">
                             <Laptop size={13} className="text-neutral-400" />
-                            {log.deviceInfo}
-                          </span>
+                            <span>{log.deviceInfo}</span>
+                          </div>
                         </td>
+
                         <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
-                            <CheckCircle2 size={13} className="text-emerald-600" />
-                            <span>Authenticated</span>
-                          </span>
+                          {isCurrentlyOnline ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              ONLINE NOW
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-neutral-500 font-medium">
+                              <CheckCircle2 size={13} className="text-emerald-500" />
+                              Authenticated
+                            </span>
+                          )}
                         </td>
                       </tr>
                     );
