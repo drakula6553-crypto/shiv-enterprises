@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -10,14 +10,11 @@ import {
   ShoppingBag,
   Users,
   Settings,
-  LogOut,
-  LogIn,
-  User,
   ShieldCheck,
   Crown,
   Layers,
 } from 'lucide-react';
-import { getCurrentUser, signOut, isUserAdmin, AuthUser } from '@/lib/auth';
+import { getCurrentUser, isUserAdmin, AuthUser } from '@/lib/auth';
 
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
@@ -30,18 +27,11 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
   }, [pathname]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    setCurrentUser(null);
-    router.push('/login');
-  };
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-[#0B0F17] text-neutral-200 fixed top-0 left-0 h-full z-40 border-r border-white/[0.07] select-none">
@@ -146,53 +136,32 @@ export default function Sidebar() {
           <span>Settings & Letterhead</span>
         </Link>
 
-        {/* User Profile / Login status */}
+        {/* User Profile / Status */}
         <div className="pt-2 border-t border-white/[0.05] flex items-center justify-between px-2">
-          {currentUser ? (
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 border ${
-                currentUser.role === 'admin'
-                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                  : 'bg-blue-500/20 border-blue-500/40 text-blue-300'
-              }`}>
-                {currentUser.avatarInitials || (currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'H')}
-              </div>
-              <div className="overflow-hidden">
-                <span className="text-xs font-semibold text-white block truncate">
-                  {currentUser.displayName || currentUser.fullName}
-                </span>
-                <span className="text-[10px] text-neutral-400 block truncate">
-                  {currentUser.roleTitle || (currentUser.role === 'admin' ? 'Admin' : 'Partner')}
-                </span>
-              </div>
+          <Link
+            href="/admin/tracking"
+            className="flex items-center gap-2.5 overflow-hidden group hover:opacity-95 transition-opacity"
+          >
+            <div className="w-7 h-7 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-bold text-[11px] shrink-0 shadow-sm">
+              {currentUser?.avatarInitials || 'HP'}
             </div>
-          ) : (
-            <Link
-              href="/login"
-              className="flex items-center gap-2 text-xs text-neutral-300 hover:text-white"
-            >
-              <User size={14} className="text-neutral-400" />
-              <span>Partner Sign in</span>
-            </Link>
-          )}
+            <div className="overflow-hidden">
+              <span className="text-xs font-semibold text-white block truncate group-hover:text-amber-400 transition-colors">
+                {currentUser?.displayName || currentUser?.fullName || 'Harsh (Admin)'}
+              </span>
+              <span className="text-[10px] text-neutral-400 block truncate">
+                {currentUser?.roleTitle || 'Admin / Managing Partner'}
+              </span>
+            </div>
+          </Link>
 
-          {currentUser ? (
-            <button
-              onClick={handleSignOut}
-              title={`Sign out (${currentUser.username})`}
-              className="p-1.5 text-neutral-400 hover:text-rose-400 hover:bg-white/[0.05] rounded-md transition-colors"
-            >
-              <LogOut size={14} />
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              className="p-1.5 text-neutral-400 hover:text-amber-400 rounded-md transition-colors"
-              title="Log in"
-            >
-              <LogIn size={14} />
-            </Link>
-          )}
+          <Link
+            href="/settings"
+            title="Settings & Letterhead"
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/[0.05] rounded-md transition-colors"
+          >
+            <Settings size={14} />
+          </Link>
         </div>
       </div>
     </aside>

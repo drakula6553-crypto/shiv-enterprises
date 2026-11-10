@@ -58,27 +58,41 @@ export const PARTNER_ACCOUNTS: Record<string, PartnerAccount> = {
   },
 };
 
+export const DEFAULT_USER: AuthUser = {
+  id: 'usr_harsh16',
+  username: 'Harsh16',
+  email: 'harsh16@shiventerprises.com',
+  fullName: 'Harsh (Admin)',
+  displayName: 'Harsh',
+  role: 'admin',
+  roleTitle: 'Admin / Managing Partner',
+  companyName: 'Shiv Enterprises Civil Contractors',
+  avatarInitials: 'HP',
+  loginTime: new Date().toISOString(),
+};
+
 /**
  * Check if the given user has admin privileges
  */
 export function isUserAdmin(user: AuthUser | null): boolean {
-  if (!user) return false;
+  if (!user) return true; // Default admin access while login is removed
   return user.role === 'admin' || user.username.toLowerCase() === 'harsh16';
 }
 
 /**
- * Get current logged in user from localStorage
+ * Get current logged in user from localStorage (defaults to Harsh Admin since login page is removed)
  */
-export function getCurrentUser(): AuthUser | null {
-  if (typeof window === 'undefined') return null;
+export function getCurrentUser(): AuthUser {
+  if (typeof window === 'undefined') return DEFAULT_USER;
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     if (!raw || raw === 'logged_out') {
-      return null;
+      return DEFAULT_USER;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.username ? parsed : DEFAULT_USER;
   } catch {
-    return null;
+    return DEFAULT_USER;
   }
 }
 
