@@ -13,7 +13,7 @@ import {
   Activity,
   Check,
 } from 'lucide-react';
-import { signIn, getCurrentUser, PARTNER_ACCOUNTS } from '@/lib/auth';
+import { signIn, getCurrentUser } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -56,11 +56,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickSelect = (accUsername: string, accPass: string) => {
-    setUsername(accUsername);
-    setPassword(accPass);
-    setErrorMessage(null);
-  };
 
   return (
     <div className="min-h-screen bg-[#0A192F] text-slate-100 flex flex-col justify-between selection:bg-sky-500/30 selection:text-sky-200">
@@ -151,7 +146,7 @@ export default function LoginPage() {
             <div className="bg-[#071324]/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.36)] relative">
               {/* Card Header */}
               <div className="mb-6">
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-white/[0.08] border border-white/[0.12] flex items-center justify-center p-1.5 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/logo.png" alt="Shiv Enterprises Logo" className="w-full h-full object-contain" />
@@ -159,53 +154,6 @@ export default function LoginPage() {
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">Partner Sign In</h2>
                     <p className="text-xs text-slate-400">Authorized personnel only</p>
-                  </div>
-                </div>
-
-                {/* Quick Select Partner Account Chips */}
-                <div className="pt-2">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1.5 font-mono">
-                    Quick Partner Select:
-                  </span>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => handleQuickSelect('Harsh16', 'Harsh@123')}
-                      className={`px-2 py-1.5 rounded-lg border text-left transition-all ${
-                        username.toLowerCase() === 'harsh16'
-                          ? 'bg-[#0284C7] border-[#0284C7] text-white shadow-xs'
-                          : 'bg-white/[0.04] border-slate-800 text-slate-300 hover:bg-white/[0.08]'
-                      }`}
-                    >
-                      <span className="text-[11px] font-bold block truncate">Harsh</span>
-                      <span className="text-[9px] text-slate-400 block truncate">Admin</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleQuickSelect('girish1', 'Girish@123')}
-                      className={`px-2 py-1.5 rounded-lg border text-left transition-all ${
-                        username.toLowerCase() === 'girish1'
-                          ? 'bg-[#0284C7] border-[#0284C7] text-white shadow-xs'
-                          : 'bg-white/[0.04] border-slate-800 text-slate-300 hover:bg-white/[0.08]'
-                      }`}
-                    >
-                      <span className="text-[11px] font-bold block truncate">Girish</span>
-                      <span className="text-[9px] text-slate-400 block truncate">Partner</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleQuickSelect('kishor2', 'Kishor@15')}
-                      className={`px-2 py-1.5 rounded-lg border text-left transition-all ${
-                        username.toLowerCase() === 'kishor2'
-                          ? 'bg-[#0284C7] border-[#0284C7] text-white shadow-xs'
-                          : 'bg-white/[0.04] border-slate-800 text-slate-300 hover:bg-white/[0.08]'
-                      }`}
-                    >
-                      <span className="text-[11px] font-bold block truncate">Kishor</span>
-                      <span className="text-[9px] text-slate-400 block truncate">Partner</span>
-                    </button>
                   </div>
                 </div>
               </div>
@@ -240,7 +188,7 @@ export default function LoginPage() {
                       autoComplete="username"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="e.g. Harsh16 or girish1"
+                      placeholder="Enter partner username"
                       className="w-full pl-9 pr-3 h-10 rounded-xl bg-[#0F2238] border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7] transition-all font-mono"
                     />
                   </div>
@@ -307,8 +255,9 @@ export default function LoginPage() {
 
               {/* Note */}
               <div className="mt-5 pt-4 border-t border-slate-800 text-center">
-                <p className="text-[11px] text-slate-400 font-mono">
-                  Registered Partner Accounts: Harsh16, girish1, kishor2
+                <p className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5 font-mono">
+                  <ShieldCheck size={13} className="text-[#38BDF8]" />
+                  <span>Secure Internal Partner Authentication</span>
                 </p>
               </div>
             </div>
