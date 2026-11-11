@@ -75,24 +75,24 @@ export const DEFAULT_USER: AuthUser = {
  * Check if the given user has admin privileges
  */
 export function isUserAdmin(user: AuthUser | null): boolean {
-  if (!user) return true; // Default admin access while login is removed
+  if (!user) return false;
   return user.role === 'admin' || user.username.toLowerCase() === 'harsh16';
 }
 
 /**
- * Get current logged in user from localStorage (defaults to Harsh Admin since login page is removed)
+ * Get current logged in user from localStorage
  */
-export function getCurrentUser(): AuthUser {
-  if (typeof window === 'undefined') return DEFAULT_USER;
+export function getCurrentUser(): AuthUser | null {
+  if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     if (!raw || raw === 'logged_out') {
-      return DEFAULT_USER;
+      return null;
     }
     const parsed = JSON.parse(raw);
-    return parsed && parsed.username ? parsed : DEFAULT_USER;
+    return parsed && parsed.username ? parsed : null;
   } catch {
-    return DEFAULT_USER;
+    return null;
   }
 }
 

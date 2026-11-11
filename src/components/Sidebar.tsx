@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -12,8 +12,10 @@ import {
   Settings,
   ShieldCheck,
   Layers,
+  LogOut,
+  LogIn,
 } from 'lucide-react';
-import { getCurrentUser, isUserAdmin, AuthUser } from '@/lib/auth';
+import { getCurrentUser, isUserAdmin, signOut, AuthUser } from '@/lib/auth';
 
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
@@ -26,11 +28,18 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
   }, [pathname]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setCurrentUser(null);
+    router.push('/login');
+  };
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-[#0A192F] text-slate-200 fixed top-0 left-0 h-full z-40 border-r border-slate-800/80 select-none shadow-[2px_0_12px_rgba(2,12,27,0.35)]">
@@ -151,31 +160,44 @@ export default function Sidebar() {
 
         {/* User Profile Info */}
         <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between px-2">
-          <Link
-            href="/admin/tracking"
-            className="flex items-center gap-2.5 overflow-hidden group hover:opacity-95 transition-opacity"
-            title="View Live User Presence"
-          >
-            <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30 flex items-center justify-center font-bold text-[11px] shrink-0 shadow-sm">
-              {currentUser?.avatarInitials || 'HP'}
-            </div>
-            <div className="overflow-hidden">
-              <span className="text-xs font-semibold text-white block truncate group-hover:text-sky-300 transition-colors">
-                {currentUser?.displayName || currentUser?.fullName || 'Harsh (Admin)'}
-              </span>
-              <span className="text-[10px] text-slate-400 block truncate">
-                {currentUser?.roleTitle || 'Admin / Managing Partner'}
-              </span>
-            </div>
-          </Link>
+          {currentUser ? (
+            <>
+              <Link
+                href="/admin/tracking"
+                className="flex items-center gap-2.5 overflow-hidden group hover:opacity-95 transition-opacity max-w-[170px]"
+                title="View Live User Presence"
+              >
+                <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30 flex items-center justify-center font-bold text-[11px] shrink-0 shadow-sm">
+                  {currentUser?.avatarInitials || 'HP'}
+                </div>
+                <div className="overflow-hidden">
+                  <span className="text-xs font-semibold text-white block truncate group-hover:text-sky-300 transition-colors">
+                    {currentUser?.displayName || currentUser?.fullName || 'Harsh (Admin)'}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block truncate">
+                    {currentUser?.roleTitle || 'Admin / Managing Partner'}
+                  </span>
+                </div>
+              </Link>
 
-          <Link
-            href="/settings"
-            title="Settings & Letterhead"
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/[0.08] rounded-lg transition-colors"
-          >
-            <Settings size={14} />
-          </Link>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                title="Sign out of Partner Portal"
+                className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+              >
+                <LogOut size={14} />
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center justify-center gap-2 w-full py-1.5 px-3 rounded-lg bg-[#0284C7]/20 border border-[#0284C7]/40 text-sky-300 text-xs font-medium hover:bg-[#0284C7]/30 transition-colors"
+            >
+              <LogIn size={14} />
+              <span>Partner Sign In</span>
+            </Link>
+          )}
         </div>
       </div>
     </aside>
