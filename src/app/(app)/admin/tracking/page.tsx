@@ -870,7 +870,7 @@ export default function AdminTrackingPage() {
                 No recent activity breadcrumbs logged yet. As partners navigate, live events will appear here in real time.
               </div>
             ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-96 overflow-y-auto modal-scrollable pr-1">
                 {activityStream.map((item) => (
                   <div
                     key={item.id}

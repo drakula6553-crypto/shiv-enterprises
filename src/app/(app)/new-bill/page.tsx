@@ -42,6 +42,7 @@ import InvoicePreview from '@/components/InvoicePreview';
 import { getCurrentUser } from '@/lib/auth';
 import { recordBillActivity } from '@/lib/tracking';
 import { syncInvoiceToCloud } from '@/lib/cloudSync';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 function InvoiceBuilderContent() {
   const router = useRouter();
@@ -54,6 +55,9 @@ function InvoiceBuilderContent() {
   const [isQuickMode, setIsQuickMode] = useState<boolean>(true);
   const [showClientDetails, setShowClientDetails] = useState<boolean>(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
+
+  // Lock body scroll when mobile letterhead preview is open
+  useBodyScrollLock(showMobilePreview);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
@@ -666,7 +670,7 @@ function InvoiceBuilderContent() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto pb-28 md:pb-12">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto pb-44 md:pb-12">
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-neutral-900 text-white px-4 py-2.5 rounded-lg shadow-lg border border-neutral-700 text-xs font-medium">
@@ -1582,9 +1586,17 @@ function InvoiceBuilderContent() {
 
       {/* Mobile Fullscreen Preview Modal */}
       {showMobilePreview && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end lg:hidden">
-          <div className="bg-white rounded-t-2xl max-h-[94vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b border-neutral-200 bg-neutral-900 text-white">
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end lg:hidden overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowMobilePreview(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-t-2xl max-h-[88dvh] flex flex-col overflow-hidden shadow-2xl overscroll-contain"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-neutral-200 bg-neutral-900 text-white shrink-0">
               <div className="flex items-center gap-2">
                 <FileText size={16} />
                 <span className="font-semibold text-xs">
@@ -1599,7 +1611,7 @@ function InvoiceBuilderContent() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-2 bg-neutral-100">
+            <div className="flex-1 overflow-y-auto modal-scrollable p-2 bg-neutral-100">
               <div className="origin-top" style={{ minWidth: '340px' }}>
                 {companyProfile && (
                   <InvoicePreview
@@ -1610,7 +1622,7 @@ function InvoiceBuilderContent() {
               </div>
             </div>
 
-            <div className="p-3 bg-white border-t border-slate-200 grid grid-cols-2 gap-2">
+            <div className="p-3 bg-white border-t border-slate-200 grid grid-cols-2 gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => {

@@ -37,6 +37,7 @@ import {
   deleteContractorFromCloud,
 } from '@/lib/cloudSync';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 interface LedgerEntry {
   id: string;
@@ -87,6 +88,9 @@ export default function ContractorsPage() {
   const [payNotes, setPayNotes] = useState('');
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Lock body scroll when contractor modal is open so background website cannot scroll
+  useBodyScrollLock(showAddContractorModal || !!billModalContractor || !!payModalContractor);
 
   useEffect(() => {
     loadData(true);
@@ -922,9 +926,18 @@ export default function ContractorsPage() {
 
       {/* Modal 1: Add/Edit Contractor */}
       {showAddContractorModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-neutral-200 shadow-xl">
-            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white rounded-t-2xl sm:rounded-t-xl">
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4 overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAddContractorModal(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[88dvh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-neutral-200 shadow-xl overscroll-contain"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Non-scrolling Header */}
+            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white rounded-t-2xl sm:rounded-t-2xl shrink-0">
               <h3 className="font-semibold text-sm">
                 {editingContractor ? 'Edit contractor' : 'Add new contractor'}
               </h3>
@@ -937,7 +950,9 @@ export default function ContractorsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveContractor} className="p-4 space-y-3.5">
+            {/* Dedicated Mobile Touch Scroll Area */}
+            <div className="flex-1 overflow-y-auto modal-scrollable p-4">
+              <form onSubmit={handleSaveContractor} className="space-y-3.5 pb-6">
               <div>
                 <label className="block text-xs font-medium text-neutral-700 mb-1">
                   Contractor name *
@@ -1020,15 +1035,25 @@ export default function ContractorsPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Modal 2: Record Work Bill */}
       {billModalContractor && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-neutral-200 shadow-xl">
-            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white rounded-t-2xl sm:rounded-t-xl">
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4 overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setBillModalContractor(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[88dvh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-neutral-200 shadow-xl overscroll-contain"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Non-scrolling Header */}
+            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white rounded-t-2xl sm:rounded-t-2xl shrink-0">
               <div>
                 <h3 className="font-semibold text-sm">Record work bill</h3>
                 <p className="text-xs text-neutral-400 mt-0.5">
@@ -1044,7 +1069,9 @@ export default function ContractorsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveWorkBill} className="p-4 space-y-3.5">
+            {/* Dedicated Mobile Touch Scroll Area */}
+            <div className="flex-1 overflow-y-auto modal-scrollable p-4">
+              <form onSubmit={handleSaveWorkBill} className="space-y-3.5 pb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-neutral-700 mb-1">
@@ -1113,15 +1140,25 @@ export default function ContractorsPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Modal 3: Record Payment */}
       {payModalContractor && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-neutral-200 shadow-xl">
-            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white rounded-t-2xl sm:rounded-t-xl">
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4 overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPayModalContractor(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[88dvh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-neutral-200 shadow-xl overscroll-contain"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Non-scrolling Header */}
+            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white rounded-t-2xl sm:rounded-t-2xl shrink-0">
               <div>
                 <h3 className="font-semibold text-sm">Record payment to contractor</h3>
                 <p className="text-xs text-neutral-400 mt-0.5">
@@ -1137,7 +1174,9 @@ export default function ContractorsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSavePayment} className="p-4 space-y-3.5">
+            {/* Dedicated Mobile Touch Scroll Area */}
+            <div className="flex-1 overflow-y-auto modal-scrollable p-4">
+              <form onSubmit={handleSavePayment} className="space-y-3.5 pb-6">
               <div className="p-3 bg-neutral-100 rounded-lg flex items-center justify-between text-xs">
                 <span className="text-neutral-600">Current balance due:</span>
                 <span className="font-semibold text-rose-700 tabular-nums">
@@ -1228,6 +1267,7 @@ export default function ContractorsPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

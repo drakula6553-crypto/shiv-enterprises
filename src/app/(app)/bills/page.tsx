@@ -40,6 +40,7 @@ import {
   deleteInvoiceFromCloud,
 } from '@/lib/cloudSync';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 export default function BillsPage() {
   const router = useRouter();
@@ -65,6 +66,9 @@ export default function BillsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [downloadingBill, setDownloadingBill] = useState<Invoice | null>(null);
   const billExportRef = useRef<HTMLDivElement>(null);
+
+  // Lock body scroll when payment modal is open so background website cannot scroll
+  useBodyScrollLock(!!activePaymentInvoice);
 
   useEffect(() => {
     loadData(true);
@@ -639,9 +643,18 @@ export default function BillsPage() {
 
       {/* Payment Modal */}
       {activePaymentInvoice && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-neutral-200 shadow-xl">
-            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white rounded-t-2xl sm:rounded-t-xl">
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4 overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setActivePaymentInvoice(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[88dvh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-neutral-200 shadow-xl overscroll-contain"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Non-scrolling Header */}
+            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white rounded-t-2xl sm:rounded-t-2xl shrink-0">
               <div>
                 <h3 className="font-semibold text-sm">
                   {editingPayment ? 'Edit payment' : 'Record payment'}
@@ -659,7 +672,9 @@ export default function BillsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSavePayment} className="p-4 space-y-3.5">
+            {/* Dedicated Mobile Touch Scroll Area */}
+            <div className="flex-1 overflow-y-auto modal-scrollable p-4">
+              <form onSubmit={handleSavePayment} className="space-y-3.5 pb-6">
               <div className="p-3 bg-neutral-100 rounded-lg flex items-center justify-between text-xs">
                 <span className="text-neutral-600">Pending balance:</span>
                 <span className="font-semibold text-rose-700 tabular-nums">
@@ -763,6 +778,7 @@ export default function BillsPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

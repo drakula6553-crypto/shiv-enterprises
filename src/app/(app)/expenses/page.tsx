@@ -47,6 +47,7 @@ import {
   fetchExpensesFromCloud,
 } from '@/lib/cloudSync';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 // Helper to compress camera/gallery images before storing
 function compressImage(file: File): Promise<{ dataUrl: string; name: string; type: 'image' }> {
@@ -142,6 +143,9 @@ export default function ExpensesPage() {
 
   // Viewer Lightbox Modal for Receipt
   const [viewingReceiptExpense, setViewingReceiptExpense] = useState<Expense | null>(null);
+
+  // Lock body scroll whenever any modal / sub-page is open to prevent background website scrolling
+  useBodyScrollLock(showModal || !!quickUploadExpense || !!viewingReceiptExpense);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSyncingCloud, setIsSyncingCloud] = useState(false);
@@ -827,9 +831,18 @@ export default function ExpensesPage() {
 
       {/* Record / Edit Purchase Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-[#0A192F] text-white rounded-t-2xl sm:rounded-t-2xl sticky top-0 z-10">
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4 overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowModal(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[88dvh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-slate-200 shadow-2xl overscroll-contain"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Non-scrolling Sticky Header */}
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-[#0A192F] text-white rounded-t-2xl sm:rounded-t-2xl shrink-0">
               <h3 className="font-semibold text-sm tracking-tight text-white flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#38BDF8]" />
                 {editingExpense ? 'Edit purchase voucher' : 'Record purchase / expense'}
@@ -843,7 +856,9 @@ export default function ExpensesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveExpense} className="p-4 sm:p-5 space-y-4">
+            {/* Dedicated Mobile Touch Scroll Area */}
+            <div className="flex-1 overflow-y-auto modal-scrollable p-4 sm:p-5">
+              <form onSubmit={handleSaveExpense} className="space-y-4 pb-6">
               <div>
                 <label className="block text-xs font-medium text-neutral-700 mb-1">
                   Paid to / Supplier name *
@@ -1152,15 +1167,24 @@ export default function ExpensesPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* QUICK UPLOAD AFTERWARDS MODAL */}
       {quickUploadExpense && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md border border-neutral-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white">
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setQuickUploadExpense(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-md max-h-[88dvh] border border-neutral-200 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 overscroll-contain"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white shrink-0">
               <div>
                 <h3 className="font-semibold text-sm">Attach Bill Document Afterwards</h3>
                 <p className="text-[11px] text-neutral-400 mt-0.5">
@@ -1176,7 +1200,7 @@ export default function ExpensesPage() {
               </button>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-5 space-y-4 overflow-y-auto modal-scrollable flex-1">
               <input
                 ref={quickFileInputRef}
                 type="file"
@@ -1278,8 +1302,16 @@ export default function ExpensesPage() {
 
       {/* RECEIPT VIEWER / LIGHTBOX MODAL */}
       {viewingReceiptExpense && viewingReceiptExpense.receiptUrl && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setViewingReceiptExpense(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-2xl max-h-[88dvh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-150 overscroll-contain"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white shrink-0">
               <div>
@@ -1310,7 +1342,7 @@ export default function ExpensesPage() {
             </div>
 
             {/* Content Display */}
-            <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-neutral-100 min-h-[300px]">
+            <div className="flex-1 overflow-y-auto modal-scrollable p-4 flex items-center justify-center bg-neutral-100 min-h-[300px]">
               {viewingReceiptExpense.receiptType === 'pdf' || viewingReceiptExpense.receiptUrl.startsWith('data:application/pdf') ? (
                 <div className="text-center p-8 bg-white rounded-xl border border-neutral-200 max-w-md space-y-4">
                   <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">

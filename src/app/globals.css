@@ -128,13 +128,29 @@ body {
   }
 }
 
-/* Hide scrollbar in preview frames */
+/* Hide scrollbar in preview frames & horizontal tabs with smooth mobile touch scrolling */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+
+/* Modal and Sub-Sheet Touch Scroll Isolation for Mobile */
+.modal-scrollable {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  overscroll-behavior-y: contain !important;
+  touch-action: pan-y !important;
+}
+
+body.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
 }
 
 /* Intentional motion tokens */
