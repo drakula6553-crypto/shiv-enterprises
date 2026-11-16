@@ -468,24 +468,135 @@ export const SEED_ROSHAN_NAGER_PROJECT: ProjectRAContract = {
   updatedAt: new Date().toISOString(),
 };
 
+export const CONCRETE_GRADES = [
+  'M-10',
+  'M-15',
+  'M-20',
+  'M-25',
+  'M-30',
+  'M-35',
+  'M-40',
+  'M-45',
+  'M-50',
+  'M-55',
+  'M-60',
+];
+
+export const SEED_DAHISAR_HEIGHTS_PROJECT: ProjectRAContract = {
+  id: 'harshail-heights-dahisar',
+  builderName: 'Harshmaan spaces LLP',
+  projectName: 'Harshail Heights Dahisar East',
+  contractDate: '2026-06-15',
+  billingAreaSqFt: 45000,
+  labourRate: 600,
+  materialRate: 400,
+  labourBilledAmount: 8500000,
+  materialBilledAmount: 1200000,
+  notes: 'Dahisar East Turnkey Contract. Rate: Rs.600 Labour + Rs.400 Material = Rs.1,000/sq.ft.',
+  rmcDeductions: [
+    {
+      id: 'rmc-dh-1',
+      grade: 'M-25',
+      quantityCuM: 85.0,
+      rate: 1980,
+      amount: 168300,
+      fromDate: '2026-07-01',
+      toDate: '2026-11-01',
+    },
+    {
+      id: 'rmc-dh-2',
+      grade: 'M-40',
+      quantityCuM: 620.0,
+      rate: 2150,
+      amount: 1333000,
+      fromDate: '2026-07-01',
+      toDate: '2026-11-01',
+    },
+  ],
+  materialAdjustments: [
+    {
+      id: 'adj-dh-1',
+      title: 'Pending Amount from Submitted Bill (Riddhi Siddhi Steel)',
+      amount: 450000,
+      type: 'add',
+      notes: 'Steel reinforcement supplier adjustment',
+    },
+  ],
+  stages: [
+    {
+      id: 's-dh-1',
+      sr: 1,
+      description: 'Excavation & Piling',
+      percentage: 6.0,
+      labourAmount: 1620000,
+      materialAmount: 1080000,
+      status: 'completed_billed',
+      billedInvoiceNumber: 'HD 01',
+    },
+    {
+      id: 's-dh-2',
+      sr: 2,
+      description: 'Plinth beam & Basement casting',
+      percentage: 8.0,
+      labourAmount: 2160000,
+      materialAmount: 1440000,
+      status: 'completed_billed',
+      billedInvoiceNumber: 'HD 02',
+    },
+    {
+      id: 's-dh-3',
+      sr: 3,
+      description: '1st slab casting',
+      percentage: 3.0,
+      labourAmount: 810000,
+      materialAmount: 540000,
+      status: 'completed_billed',
+      billedInvoiceNumber: 'HD 03',
+    },
+    {
+      id: 's-dh-4',
+      sr: 4,
+      description: '2nd slab casting',
+      percentage: 3.0,
+      labourAmount: 810000,
+      materialAmount: 540000,
+      status: 'completed_pending',
+      notes: 'Submission of The Bill is Pending',
+    },
+    {
+      id: 's-dh-5',
+      sr: 5,
+      description: '3rd slab casting',
+      percentage: 3.0,
+      labourAmount: 810000,
+      materialAmount: 540000,
+      status: 'pending',
+    },
+  ],
+  createdAt: '2026-06-15T10:00:00.000Z',
+  updatedAt: new Date().toISOString(),
+};
+
 const STORAGE_KEY = 'shiv_projects_ra';
 
 export function getProjectsRA(): ProjectRAContract[] {
-  if (typeof window === 'undefined') return [SEED_ROSHAN_NAGER_PROJECT];
+  if (typeof window === 'undefined') return [SEED_ROSHAN_NAGER_PROJECT, SEED_DAHISAR_HEIGHTS_PROJECT];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      saveProjectRA(SEED_ROSHAN_NAGER_PROJECT);
-      return [SEED_ROSHAN_NAGER_PROJECT];
+      const defaultList = [SEED_ROSHAN_NAGER_PROJECT, SEED_DAHISAR_HEIGHTS_PROJECT];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultList));
+      return defaultList;
     }
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      saveProjectRA(SEED_ROSHAN_NAGER_PROJECT);
-      return [SEED_ROSHAN_NAGER_PROJECT];
+      const defaultList = [SEED_ROSHAN_NAGER_PROJECT, SEED_DAHISAR_HEIGHTS_PROJECT];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultList));
+      return defaultList;
     }
     return parsed;
   } catch {
-    return [SEED_ROSHAN_NAGER_PROJECT];
+    return [SEED_ROSHAN_NAGER_PROJECT, SEED_DAHISAR_HEIGHTS_PROJECT];
   }
 }
 
@@ -519,6 +630,55 @@ export function deleteProjectRA(id: string): void {
   } catch (e) {
     console.error('Error deleting project RA:', e);
   }
+}
+
+export function createNewProjectRA(data: {
+  projectName: string;
+  builderName: string;
+  billingAreaSqFt: number;
+  labourRate: number;
+  materialRate: number;
+  contractDate?: string;
+  cloneStandardStages?: boolean;
+}): ProjectRAContract {
+  const cleanName = data.projectName.trim();
+  const id =
+    cleanName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || `site-${Date.now()}`;
+
+  const stages: ProjectStage[] = data.cloneStandardStages
+    ? SEED_ROSHAN_NAGER_PROJECT.stages.map((s, idx) => ({
+        id: `s-${id}-${idx + 1}`,
+        sr: idx + 1,
+        description: s.description,
+        percentage: s.percentage,
+        labourAmount: Math.round((data.billingAreaSqFt * data.labourRate * s.percentage) / 100),
+        materialAmount: Math.round((data.billingAreaSqFt * data.materialRate * s.percentage) / 100),
+        status: 'pending',
+      }))
+    : [];
+
+  const newProj: ProjectRAContract = {
+    id,
+    projectName: cleanName,
+    builderName: data.builderName.trim() || 'Builder / Developer',
+    contractDate: data.contractDate || new Date().toISOString().split('T')[0],
+    billingAreaSqFt: Number(data.billingAreaSqFt) || 50000,
+    labourRate: Number(data.labourRate) || 600,
+    materialRate: Number(data.materialRate) || 400,
+    labourBilledAmount: 0,
+    materialBilledAmount: 0,
+    stages,
+    rmcDeductions: [],
+    materialAdjustments: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  saveProjectRA(newProj);
+  return newProj;
 }
 
 // ─── Native Multi-Sheet Excel Export (.xlsx) ─────────────────
