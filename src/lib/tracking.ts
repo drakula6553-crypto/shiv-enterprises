@@ -63,10 +63,33 @@ export interface ContractorActivityLog {
   createdAtTime: string;
 }
 
+export interface SupplierActivityLog {
+  id: string;
+  supplierId: string;
+  supplierName: string;
+  category: string;
+  action:
+    | 'supplier_added'
+    | 'supplier_updated'
+    | 'supplier_deleted'
+    | 'bill_recorded'
+    | 'bill_deleted'
+    | 'payment_recorded'
+    | 'payment_deleted';
+  billNumber?: string;
+  amount: number;
+  description: string;
+  createdByUsername: string;
+  createdByName: string;
+  createdByRole: string;
+  createdAtTime: string;
+}
+
 const STORAGE_KEY_LOGIN_LOGS = 'shiv_login_logs';
 const STORAGE_KEY_BILL_LOGS = 'shiv_bill_activity_logs';
 const STORAGE_KEY_EXPENSE_LOGS = 'shiv_expense_activity_logs';
 const STORAGE_KEY_CONTRACTOR_LOGS = 'shiv_contractor_activity_logs';
+const STORAGE_KEY_SUPPLIER_LOGS = 'shiv_supplier_activity_logs';
 
 function resolveUser(user?: AuthUser | null): AuthUser {
   if (user) return user;
@@ -339,6 +362,116 @@ export async function recordContractorActivity(params: {
       console.warn('Failed to write contractor log to Supabase:', err);
     }
   }
+}
+
+export async function recordSupplierActivity(params: {
+  supplierId: string;
+  supplierName: string;
+  category?: string;
+  action:
+    | 'supplier_added'
+    | 'supplier_updated'
+    | 'supplier_deleted'
+    | 'bill_recorded'
+    | 'bill_deleted'
+    | 'payment_recorded'
+    | 'payment_deleted';
+  billNumber?: string;
+  amount?: number;
+  description?: string;
+  user?: AuthUser | null;
+}): Promise<void> {
+  const activeUser = resolveUser(params.user);
+  const newLog: SupplierActivityLog = {
+    id: 'sact_' + Math.random().toString(36).substring(2, 9),
+    supplierId: params.supplierId,
+    supplierName: params.supplierName,
+    category: params.category || 'General Material',
+    action: params.action,
+    billNumber: params.billNumber,
+    amount: params.amount || 0,
+    description: params.description || '',
+    createdByUsername: activeUser.username,
+    createdByName: activeUser.fullName,
+    createdByRole: activeUser.roleTitle || activeUser.role,
+    createdAtTime: new Date().toISOString(),
+  };
+
+  // 1. Save locally
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_SUPPLIER_LOGS);
+      const existing: SupplierActivityLog[] = raw ? JSON.parse(raw) : [];
+      existing.unshift(newLog);
+      localStorage.setItem(STORAGE_KEY_SUPPLIER_LOGS, JSON.stringify(existing.slice(0, 150)));
+    } catch (e) {
+      console.warn('Failed to save supplier log locally:', e);
+    }
+  }
+
+  // 2. Sync to Supabase Cloud
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('supplier_activity_logs').insert({
+        supplier_id: newLog.supplierId,
+        supplier_name: newLog.supplierName,
+        category: newLog.category,
+        action: newLog.action,
+        bill_number: newLog.billNumber,
+        amount: newLog.amount,
+        description: newLog.description,
+        created_by_username: newLog.createdByUsername,
+        created_by_name: newLog.createdByName,
+        created_by_role: newLog.createdByRole,
+        created_at_time: newLog.createdAtTime,
+      });
+    } catch (err) {
+      console.warn('Failed to write supplier log to Supabase:', err);
+    }
+  }
+}
+
+export async function getSupplierActivityLogs(): Promise<SupplierActivityLog[]> {
+  let localLogs: SupplierActivityLog[] = [];
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_SUPPLIER_LOGS);
+      if (raw) localLogs = JSON.parse(raw);
+    } catch {
+      localLogs = [];
+    }
+  }
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('supplier_activity_logs')
+        .select('*')
+        .order('created_at_time', { ascending: false })
+        .limit(100);
+
+      if (!error && Array.isArray(data)) {
+        return data.map((row) => ({
+          id: row.id,
+          supplierId: row.supplier_id,
+          supplierName: row.supplier_name,
+          category: row.category,
+          action: row.action,
+          billNumber: row.bill_number,
+          amount: Number(row.amount) || 0,
+          description: row.description || '',
+          createdByUsername: row.created_by_username,
+          createdByName: row.created_by_name,
+          createdByRole: row.created_by_role,
+          createdAtTime: row.created_at_time,
+        }));
+      }
+    } catch {
+      // Return cached
+    }
+  }
+
+  return localLogs;
 }
 
 /**

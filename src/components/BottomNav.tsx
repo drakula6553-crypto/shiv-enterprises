@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, FilePlus, FileText, ShoppingBag, Users, Layers } from 'lucide-react';
+import { LayoutDashboard, FilePlus, FileText, ShoppingBag, Users, Layers, Truck } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/project-tracking', label: 'RA Ledger', icon: Layers },
   { href: '/expenses', label: 'Purchases', icon: ShoppingBag },
   { href: '/contractors', label: 'Contractors', icon: Users },
+  { href: '/suppliers', label: 'Suppliers', icon: Truck },
 ];
 
 export default function BottomNav() {
@@ -18,7 +19,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 md:hidden safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-      <div className="flex justify-around items-center h-14 max-w-md mx-auto px-1">
+      <div className="flex justify-between items-center h-14 max-w-lg mx-auto px-1 overflow-x-auto no-scrollbar">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === '/'
@@ -31,8 +32,8 @@ export default function BottomNav() {
               href={href}
               className={`
                 flex flex-col items-center justify-center
-                flex-1 min-h-[44px] py-1
-                rounded-lg transition-all touch-target
+                flex-1 min-w-[50px] min-h-[44px] py-1 px-0.5
+                rounded-lg transition-all touch-target shrink-0
                 ${isActive
                   ? 'text-[#0284C7]'
                   : 'text-slate-500 active:text-slate-900'
@@ -40,13 +41,13 @@ export default function BottomNav() {
               `}
             >
               <Icon
-                size={18}
+                size={17}
                 strokeWidth={isActive ? 2 : 1.5}
                 className={isActive ? 'text-[#0284C7]' : 'text-slate-400'}
               />
               <span
                 className={`
-                  text-[10px] mt-0.5 leading-tight text-center tracking-normal
+                  text-[9px] mt-0.5 leading-tight text-center tracking-tight truncate max-w-[54px]
                   ${isActive ? 'font-bold text-[#0F2238]' : 'font-medium text-slate-500'}
                 `}
               >

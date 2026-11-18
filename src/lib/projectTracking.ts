@@ -29,6 +29,7 @@ export interface RmcDeductionItem {
 export interface MaterialAdjustmentItem {
   id: string;
   title: string;
+  billNumber?: string; // Bill Number / Invoice No. / Challan No.
   amount: number;
   type: 'add' | 'deduct';
   notes?: string;

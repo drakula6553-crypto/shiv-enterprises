@@ -106,6 +106,7 @@ export default function ProjectTrackingPage() {
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
   const [editingAdjustment, setEditingAdjustment] = useState<MaterialAdjustmentItem | null>(null);
   const [adjTitle, setAdjTitle] = useState('');
+  const [adjBillNumber, setAdjBillNumber] = useState('');
   const [adjType, setAdjType] = useState<'add' | 'deduct'>('deduct');
   const [adjAmount, setAdjAmount] = useState('');
   const [adjNotes, setAdjNotes] = useState('');
@@ -466,6 +467,7 @@ export default function ProjectTrackingPage() {
   const handleOpenAddAdjustment = () => {
     setEditingAdjustment(null);
     setAdjTitle('');
+    setAdjBillNumber('');
     setAdjType('deduct'); // Default deduction
     setAdjAmount('');
     setAdjNotes('');
@@ -475,6 +477,7 @@ export default function ProjectTrackingPage() {
   const handleOpenEditAdjustment = (adj: MaterialAdjustmentItem) => {
     setEditingAdjustment(adj);
     setAdjTitle(adj.title);
+    setAdjBillNumber(adj.billNumber || '');
     setAdjType(adj.type);
     setAdjAmount(adj.amount.toString());
     setAdjNotes(adj.notes || '');
@@ -499,6 +502,7 @@ export default function ProjectTrackingPage() {
         return {
           ...a,
           title: adjTitle.trim(),
+          billNumber: adjBillNumber.trim() || undefined,
           type: adjType,
           amount: amt,
           notes: adjNotes.trim() || undefined,
@@ -510,6 +514,7 @@ export default function ProjectTrackingPage() {
       const newAdj: MaterialAdjustmentItem = {
         id: `adj-${Date.now()}`,
         title: adjTitle.trim(),
+        billNumber: adjBillNumber.trim() || undefined,
         type: adjType,
         amount: amt,
         notes: adjNotes.trim() || undefined,
@@ -1483,7 +1488,7 @@ export default function ProjectTrackingPage() {
                       className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-slate-200 text-xs gap-3 transition-colors"
                     >
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span
                             className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase ${
                               adj.type === 'add'
@@ -1494,6 +1499,11 @@ export default function ProjectTrackingPage() {
                             {adj.type === 'add' ? '+ ADD BACK' : '- DEDUCTION'}
                           </span>
                           <span className="font-bold text-slate-900 text-sm">{adj.title}</span>
+                          {adj.billNumber && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                              Bill #{adj.billNumber}
+                            </span>
+                          )}
                         </div>
                         {adj.notes && (
                           <div className="text-[11px] text-slate-500 mt-1">{adj.notes}</div>
@@ -2183,6 +2193,19 @@ export default function ProjectTrackingPage() {
                     onChange={(e) => setAdjTitle(e.target.value)}
                     placeholder="e.g. Pending Amount from Submitted Bill (Jamuna Associates)"
                     className="w-full px-3 h-10 rounded-lg border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Bill / Invoice / Challan Number (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={adjBillNumber}
+                    onChange={(e) => setAdjBillNumber(e.target.value)}
+                    placeholder="e.g. INV-AMB/2026/1042 or CH-4019"
+                    className="w-full px-3 h-10 rounded-lg border border-slate-300 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7]"
                   />
                 </div>
 

@@ -9,6 +9,7 @@ import {
   FileText,
   ShoppingBag,
   Users,
+  Truck,
   Settings,
   ShieldCheck,
   Layers,
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/project-tracking', label: 'Project RA & Milestones', icon: Layers },
   { href: '/expenses', label: 'Purchases & expenses', icon: ShoppingBag },
   { href: '/contractors', label: 'Contractors', icon: Users },
+  { href: '/suppliers', label: 'Suppliers', icon: Truck },
 ];
 
 export default function Sidebar() {

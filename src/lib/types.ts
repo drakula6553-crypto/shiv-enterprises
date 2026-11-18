@@ -141,6 +141,84 @@ export interface ContractorPayment {
   notes: string;
 }
 
+// ─── Material & Equipment Suppliers ─────────────────────────
+
+export type SupplierCategory =
+  | 'Cement'
+  | 'Steel / TMT'
+  | 'Ready Mix Concrete (RMC)'
+  | 'Sand & Aggregate'
+  | 'Bricks & AAC Blocks'
+  | 'Hardware & Tools'
+  | 'Plumbing & Pipes'
+  | 'Electricals'
+  | 'Shuttering Materials'
+  | 'Fuel & Diesel'
+  | 'Machinery / Crane'
+  | 'Other'
+  | (string & {});
+
+export interface SupplierBill {
+  id: string;
+  billNumber: string; // Bill / Invoice / Challan Number (REQUIRED)
+  date: string;
+  project: string; // Project / Site Name
+  materialCategory?: string;
+  description: string; // Materials description, e.g. "500 Bags OPC 53 Grade Cement"
+  amount: number;
+  vehicleNumber?: string; // Optional delivery vehicle / truck no.
+  receiptUrl?: string | null; // Attached invoice photo or PDF
+  receiptName?: string;
+  receiptType?: 'image' | 'pdf';
+  notes?: string;
+  createdAt: string;
+}
+
+export interface SupplierPayment {
+  id: string;
+  date: string;
+  amount: number;
+  mode: 'cash' | 'upi' | 'bank_transfer' | 'cheque';
+  billNumberRef?: string; // Bill Number settled against or 'On Account'
+  reference?: string; // UTR / Cheque / Txn reference
+  notes?: string;
+  createdAt: string;
+}
+
+export interface Supplier {
+  id: string;
+  name: string; // Supplier / Firm Name
+  phone: string;
+  category: SupplierCategory;
+  contactPerson?: string;
+  address?: string;
+  gstin?: string;
+  bankDetails?: string; // Bank, A/C, IFSC, or UPI
+  notes?: string;
+  bills: SupplierBill[];
+  payments: SupplierPayment[];
+  totalBilled: number;
+  totalPaid: number;
+  balance: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export const SUPPLIER_CATEGORIES: SupplierCategory[] = [
+  'Cement',
+  'Steel / TMT',
+  'Ready Mix Concrete (RMC)',
+  'Sand & Aggregate',
+  'Bricks & AAC Blocks',
+  'Hardware & Tools',
+  'Plumbing & Pipes',
+  'Electricals',
+  'Shuttering Materials',
+  'Fuel & Diesel',
+  'Machinery / Crane',
+  'Other',
+];
+
 // ─── Shiv Enterprises Purchases & Site Expenses ─────────────
 
 export type ExpenseCategory =

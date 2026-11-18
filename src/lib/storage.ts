@@ -2,13 +2,33 @@
 // LocalStorage helpers with automatic seeding & export
 // ============================================================
 
-import type { CompanyProfile, Invoice, Contractor, InvoiceTemplate, Payment, ContractorBill, ContractorPayment, Expense } from './types';
-import { SAMPLE_COMPANY_PROFILE, SAMPLE_INVOICES, SAMPLE_CONTRACTORS, DEFAULT_TEMPLATES, SAMPLE_EXPENSES } from './seed';
+import type {
+  CompanyProfile,
+  Invoice,
+  Contractor,
+  InvoiceTemplate,
+  Payment,
+  ContractorBill,
+  ContractorPayment,
+  Expense,
+  Supplier,
+  SupplierBill,
+  SupplierPayment,
+} from './types';
+import {
+  SAMPLE_COMPANY_PROFILE,
+  SAMPLE_INVOICES,
+  SAMPLE_CONTRACTORS,
+  DEFAULT_TEMPLATES,
+  SAMPLE_EXPENSES,
+  SAMPLE_SUPPLIERS,
+} from './seed';
 
 const KEYS = {
   companyProfile: 'se_company_profile',
   invoices: 'se_invoices',
   contractors: 'se_contractors',
+  suppliers: 'se_suppliers',
   templates: 'se_invoice_templates',
   expenses: 'se_expenses',
   seeded: 'se_has_seeded',
@@ -292,6 +312,96 @@ export function deleteContractorPayment(contractorId: string, paymentId: string)
   c.payments = (c.payments || []).filter((p) => p.id !== paymentId);
   const updated = recalculateContractor(c);
   saveContractor(updated);
+  return updated;
+}
+
+// ─── Material & Equipment Suppliers ─────────────────────────
+
+export function recalculateSupplier(s: Supplier): Supplier {
+  const totalBilled = (s.bills || []).reduce((sum, b) => sum + (b.amount || 0), 0);
+  const totalPaid = (s.payments || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+  const balance = totalBilled - totalPaid;
+
+  return {
+    ...s,
+    totalBilled,
+    totalPaid,
+    balance,
+  };
+}
+
+export function getSuppliers(): Supplier[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(KEYS.suppliers);
+    if (!raw) {
+      localStorage.setItem(KEYS.suppliers, JSON.stringify(SAMPLE_SUPPLIERS));
+      return SAMPLE_SUPPLIERS;
+    }
+    const list: Supplier[] = JSON.parse(raw);
+    return list.map(recalculateSupplier);
+  } catch {
+    return [];
+  }
+}
+
+export function getSupplier(id: string): Supplier | null {
+  const s = getSuppliers().find((item) => item.id === id);
+  return s ? recalculateSupplier(s) : null;
+}
+
+export function saveSupplier(supplier: Supplier): void {
+  if (typeof window === 'undefined') return;
+  const list = getSuppliers();
+  const recalculated = recalculateSupplier(supplier);
+  const idx = list.findIndex((s) => s.id === recalculated.id);
+  if (idx >= 0) {
+    list[idx] = recalculated;
+  } else {
+    list.unshift(recalculated);
+  }
+  localStorage.setItem(KEYS.suppliers, JSON.stringify(list));
+}
+
+export function deleteSupplier(id: string): void {
+  if (typeof window === 'undefined') return;
+  const list = getSuppliers().filter((s) => s.id !== id);
+  localStorage.setItem(KEYS.suppliers, JSON.stringify(list));
+}
+
+export function addSupplierBill(supplierId: string, bill: SupplierBill): Supplier | null {
+  const s = getSupplier(supplierId);
+  if (!s) return null;
+  s.bills = [...(s.bills || []), bill];
+  const updated = recalculateSupplier(s);
+  saveSupplier(updated);
+  return updated;
+}
+
+export function deleteSupplierBill(supplierId: string, billId: string): Supplier | null {
+  const s = getSupplier(supplierId);
+  if (!s) return null;
+  s.bills = (s.bills || []).filter((b) => b.id !== billId);
+  const updated = recalculateSupplier(s);
+  saveSupplier(updated);
+  return updated;
+}
+
+export function addSupplierPayment(supplierId: string, payment: SupplierPayment): Supplier | null {
+  const s = getSupplier(supplierId);
+  if (!s) return null;
+  s.payments = [...(s.payments || []), payment];
+  const updated = recalculateSupplier(s);
+  saveSupplier(updated);
+  return updated;
+}
+
+export function deleteSupplierPayment(supplierId: string, paymentId: string): Supplier | null {
+  const s = getSupplier(supplierId);
+  if (!s) return null;
+  s.payments = (s.payments || []).filter((p) => p.id !== paymentId);
+  const updated = recalculateSupplier(s);
+  saveSupplier(updated);
   return updated;
 }
 

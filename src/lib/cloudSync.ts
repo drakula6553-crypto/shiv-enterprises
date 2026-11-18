@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
-import type { Expense, Invoice, Contractor } from './types';
+import type { Expense, Invoice, Contractor, Supplier } from './types';
 import {
   getExpenses,
   saveExpense,
@@ -7,6 +7,8 @@ import {
   saveInvoice,
   getContractors,
   saveContractor,
+  getSuppliers,
+  saveSupplier,
 } from './storage';
 
 /**
@@ -633,6 +635,124 @@ export async function fetchContractorsFromCloud(): Promise<Contractor[]> {
     }
   } catch (err) {
     console.warn('Error fetching contractors from Supabase Cloud:', err);
+  }
+
+  return localList;
+}
+
+/**
+ * Instantly save/update a supplier in Supabase Cloud
+ */
+export async function syncSupplierToCloud(s: Supplier): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) return;
+
+  try {
+    await supabase.from('suppliers').upsert({
+      id: s.id,
+      name: s.name,
+      category: s.category,
+      phone: s.phone,
+      contact_person: s.contactPerson || '',
+      address: s.address || '',
+      gstin: s.gstin || '',
+      bank_details: s.bankDetails || '',
+      notes: s.notes || '',
+      bills: s.bills,
+      payments: s.payments,
+      total_billed: s.totalBilled,
+      total_paid: s.totalPaid,
+      balance: s.balance,
+      created_at: s.createdAt,
+      updated_at: s.updatedAt || new Date().toISOString(),
+    });
+  } catch (err) {
+    console.warn('Failed to upsert supplier in Supabase Cloud:', err);
+  }
+}
+
+/**
+ * Delete a supplier in Supabase Cloud
+ */
+export async function deleteSupplierFromCloud(id: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) return;
+  try {
+    await supabase.from('suppliers').delete().eq('id', id);
+  } catch (err) {
+    console.warn('Failed to delete supplier from Supabase Cloud:', err);
+  }
+}
+
+/**
+ * Fetch live suppliers from Supabase Cloud & synchronize with LocalStorage
+ */
+export async function fetchSuppliersFromCloud(): Promise<Supplier[]> {
+  const localList = getSuppliers();
+  if (!isSupabaseConfigured || !supabase) {
+    return localList;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('suppliers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && Array.isArray(data)) {
+      const cloudList: Supplier[] = data.map((row) => ({
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        phone: row.phone || '',
+        contactPerson: row.contact_person || '',
+        address: row.address || '',
+        gstin: row.gstin || '',
+        bankDetails: row.bank_details || '',
+        notes: row.notes || '',
+        bills: row.bills || [],
+        payments: row.payments || [],
+        totalBilled: Number(row.total_billed) || 0,
+        totalPaid: Number(row.total_paid) || 0,
+        balance: Number(row.balance) || 0,
+        createdAt: row.created_at || new Date().toISOString(),
+        updatedAt: row.updated_at,
+      }));
+
+      const map = new Map<string, Supplier>();
+      localList.forEach((s) => map.set(s.id, s));
+      cloudList.forEach((s) => map.set(s.id, s));
+
+      const unpushed = localList.filter((l) => !cloudList.some((s) => s.id === l.id));
+      if (unpushed.length > 0) {
+        supabase.from('suppliers').upsert(
+          unpushed.map((s) => ({
+            id: s.id,
+            name: s.name,
+            category: s.category,
+            phone: s.phone,
+            contact_person: s.contactPerson || '',
+            address: s.address || '',
+            gstin: s.gstin || '',
+            bank_details: s.bankDetails || '',
+            notes: s.notes || '',
+            bills: s.bills,
+            payments: s.payments,
+            total_billed: s.totalBilled,
+            total_paid: s.totalPaid,
+            balance: s.balance,
+            created_at: s.createdAt,
+            updated_at: s.updatedAt || new Date().toISOString(),
+          }))
+        ).then(() => {});
+      }
+
+      const merged = Array.from(map.values());
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('se_suppliers', JSON.stringify(merged));
+      }
+      return merged;
+    }
+  } catch (err) {
+    console.warn('Error fetching suppliers from Supabase Cloud:', err);
   }
 
   return localList;
